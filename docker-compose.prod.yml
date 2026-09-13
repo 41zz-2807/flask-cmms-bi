@@ -21,4 +21,4 @@ services:
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
     volumes:
       - /opt/tomcat/media:/opt/tomcat/media:ro
-    command: gunicorn --bind 127.0.0.1:${PORT:-8090} --workers 2 --threads 4 app:app
+    command: gunicorn --bind 0.0.0.0:${PORT:-8090} --workers 2 --threads 4 app:app
