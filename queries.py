@@ -94,6 +94,11 @@ QUERIES = {
         "type": "none",
         "sql": "SELECT 1 AS x, 0 AS y LIMIT 0;",
     },
+    "wo_durasi_proses": {
+        "title": "Durasi Proses WO (Creation → Approval → Close)",
+        "type": "none",
+        "sql": "SELECT 1 AS x, 0 AS y LIMIT 0;",
+    },
     "tren_bulanan": {
         "title": "Tren & Musiman WO Bulanan",
         "type": "line",
@@ -287,6 +292,41 @@ TABLE_SQL = {
           AND (%(m_org_ids)s IS NULL OR w.m_org_id = ANY(%(m_org_ids)s))
         ORDER BY w.created_date DESC
     """,
+    "wo_durasi_proses": """
+        WITH latest_appr AS (
+            SELECT DISTINCT ON (appr.om_wo_id) appr.om_wo_id, appr.om_wo_appr_id
+            FROM om_wo_appr appr
+            ORDER BY appr.om_wo_id, appr.created_date DESC, appr.om_wo_appr_id DESC
+        ),
+        hist AS (
+            SELECT la.om_wo_id,
+                   MIN(h.created_date) AS submit_ts,
+                   MIN(h.created_date) FILTER (WHERE h.last_status = 'CO') AS co_ts,
+                   MIN(h.created_date) FILTER (WHERE h.last_status = 'CL') AS cl_ts,
+                   COUNT(*) FILTER (
+                       WHERE h.last_approved IS NOT NULL
+                         AND h.last_approved <> 999999999
+                         AND h.last_approval IS NOT NULL
+                   ) AS jml_approval
+            FROM latest_appr la
+            INNER JOIN om_wo_appr_history h ON h.om_wo_appr_id = la.om_wo_appr_id
+            GROUP BY la.om_wo_id
+        )
+        SELECT w.om_wo_id AS wo_id, w.value AS no_wo, w.doc_status AS status, w.type AS tipe,
+               o.name AS site,
+               w.created_date AS created_date, w.closed_date AS closed_date,
+               ROUND(EXTRACT(EPOCH FROM (w.closed_date - w.created_date)) / 3600.0, 1) AS durasi_total_jam,
+               ROUND(EXTRACT(EPOCH FROM (h.co_ts - h.submit_ts)) / 3600.0, 1) AS durasi_approval_jam,
+               ROUND(EXTRACT(EPOCH FROM (h.cl_ts - h.co_ts)) / 3600.0, 1) AS durasi_exec_jam,
+               h.jml_approval
+        FROM om_wo w
+        LEFT JOIN hist h USING (om_wo_id)
+        LEFT JOIN m_org o ON w.m_org_id = o.m_org_id
+        WHERE w.doc_status = 'CL'
+          AND w.created_date BETWEEN %(start_date)s AND %(end_date)s
+          AND (%(m_org_ids)s IS NULL OR w.m_org_id = ANY(%(m_org_ids)s))
+        ORDER BY w.created_date DESC
+    """,
 }
 
 SUMMARY_SQL = {
@@ -386,6 +426,42 @@ SUMMARY_SQL = {
         WHERE value ILIKE '%%REQ%%'
           AND created_date BETWEEN %(start_date)s AND %(end_date)s
           AND (%(m_org_ids)s IS NULL OR m_org_id = ANY(%(m_org_ids)s))
+    """,
+    "wo_durasi_proses": """
+        WITH latest_appr AS (
+            SELECT DISTINCT ON (appr.om_wo_id) appr.om_wo_id, appr.om_wo_appr_id
+            FROM om_wo_appr appr
+            ORDER BY appr.om_wo_id, appr.created_date DESC, appr.om_wo_appr_id DESC
+        ),
+        hist AS (
+            SELECT la.om_wo_id,
+                   MIN(h.created_date) AS submit_ts,
+                   MIN(h.created_date) FILTER (WHERE h.last_status = 'CO') AS co_ts,
+                   MIN(h.created_date) FILTER (WHERE h.last_status = 'CL') AS cl_ts
+            FROM latest_appr la
+            INNER JOIN om_wo_appr_history h ON h.om_wo_appr_id = la.om_wo_appr_id
+            GROUP BY la.om_wo_id
+        ),
+        x AS (
+            SELECT w.om_wo_id, w.created_date, w.closed_date, h.submit_ts, h.co_ts, h.cl_ts
+            FROM om_wo w
+            LEFT JOIN hist h USING (om_wo_id)
+            WHERE w.doc_status = 'CL'
+              AND w.created_date BETWEEN %(start_date)s AND %(end_date)s
+              AND (%(m_org_ids)s IS NULL OR w.m_org_id = ANY(%(m_org_ids)s))
+        )
+        SELECT COUNT(*) AS total,
+               ROUND(AVG(EXTRACT(EPOCH FROM (closed_date - created_date)) / 86400.0)::numeric, 1) AS avg_total_hari,
+               ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP
+                     (ORDER BY EXTRACT(EPOCH FROM (closed_date - created_date)) / 86400.0)::numeric, 1) AS med_total_hari,
+               ROUND(AVG(EXTRACT(EPOCH FROM (co_ts - submit_ts)) / 86400.0)::numeric, 1) AS avg_approval_hari,
+               ROUND(AVG(EXTRACT(EPOCH FROM (cl_ts - co_ts)) / 86400.0)::numeric, 1) AS avg_exec_hari,
+               ROUND(PERCENTILE_CONT(0.9) WITHIN GROUP
+                     (ORDER BY EXTRACT(EPOCH FROM (closed_date - created_date)) / 86400.0)::numeric, 1) AS p90_total_hari,
+               ROUND(COUNT(*) FILTER (
+                         WHERE EXTRACT(EPOCH FROM (closed_date - created_date)) / 86400.0 <= 7
+                     ) * 100.0 / COUNT(*), 1) AS pct_dalam_7hari
+        FROM x
     """,
 }
 

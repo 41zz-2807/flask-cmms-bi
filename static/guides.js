@@ -58,6 +58,27 @@ window.BI_GUIDES = (function () {
         ["description", "Uraian/perintah kerja pada request. Bila status di-reject, biasanya ada keterangan 'Alasan Reject' di sini."],
       ],
     },
+    wo_durasi_proses: {
+      intro:
+        '<p>Mengukur <b>berapa lama suatu WO berpindah dari dibuat sampai ditutup</b> (creation → approval → eksekusi → close). Berguna untuk mengidentifikasi di tahap mana proses paling lambat sehingga bisa diperbaiki.</p>' +
+        '<p>Kartu-kartu angka di bagian atas menampilkan rata-rata/median durasi total, rata-rata lama tahap approval &amp; eksekusi, dan persentase WO yang selesai dalam ≤ 7 hari.</p>' +
+        '<p>Rentang waktu mengikuti filter <b>Dari s/d</b>: WO yang ditampilkan adalah yang <b>dibuat</b> pada rentang tersebut dan sudah berstatus <span class="g-tag">CL</span> (closed).</p>',
+      chart: null,
+      table:
+        '<p>Baris = satu WO yang sudah selesai (CL). <b>Durasi Total</b> = lamanya dari tanggal dibuat sampai ditutup. <b>Approval → Eksekusi</b> = waktu dari pengajuan approval sampai pekerjaan dinyatakan selesai (CO). <b>Eksekusi → Close</b> = waktu dari selesai eksekusi sampai ditutup (CL). Durasi ditampilkan dalam bentuk <code>X hari Y jam</code>.</p>',
+      columns: [
+        ["no_wo", "Nomor WO. Klik untuk membuka dokumen WO bila tersedia."],
+        ["status", "Status dokumen WO (hanya yang CL/closed yang ditampilkan)."],
+        ["tipe", "Jenis WO: <span class=\"g-tag\">SCH</span> terjadwal/rutin atau <span class=\"g-tag\">REQ</span> permintaan."],
+        ["site", "Lokasi/area kerja WO."],
+        ["created_date", "Tanggal WO dibuat (awal proses)."],
+        ["closed_date", "Tanggal WO ditutup (akhir proses)."],
+        ["durasi_total_jam", "Durasi keseluruhan dari dibuat sampai ditutup."],
+        ["durasi_approval_jam", "Waktu yang dihabiskan pada tahap approval sampai eksekusi selesai (CO)."],
+        ["durasi_exec_jam", "Waktu dari eksekusi selesai (CO) sampai ditutup (CL)."],
+        ["jml_approval", "Jumlah tahap/level persetujuan yang dilalui dalam alur approval."],
+      ],
+    },
     tren_bulanan: {
       intro:
         '<p>Menampilkan <b>pola dan arah</b> jumlah pekerjaan dari bulan ke bulan, lengkap dengan indikator musiman. Berguna untuk merencanakan kapasitas teknis (apakah beban sedang naik atau menurun).</p>',

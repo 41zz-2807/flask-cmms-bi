@@ -248,7 +248,7 @@ def doc_file(wo_id, filename):
 @login_required
 def index():
     groups = [
-        ("Ringkasan & KPI", ["kpi_site", "tren_bulanan", "biaya_wo", "wo_request"]),
+        ("Ringkasan & KPI", ["kpi_site", "tren_bulanan", "biaya_wo", "wo_request", "wo_durasi_proses"]),
         ("Pemeliharaan & Keandalan", ["asset_wo_summary", "pm_compliance", "mtbf_mttr", "asset_wo_frequency"]),
         ("Sparepart & Material", ["pareto_sparepart", "sparepart_fast_moving"]),
         ("Sumber Daya & Teknisi", ["profil_teknisi", "technician_performance"]),
@@ -793,6 +793,15 @@ def build_cards(category, summary):
             {"v": summary.get("open"), "l": "Belum Selesai", "accent": True},
             {"v": summary.get("rejected"), "l": "Di-Reject (RE)", "accent": True},
         ]
+    if category == "wo_durasi_proses":
+        return [
+            {"v": summary.get("total"), "l": "WO Selesai (CL)", "accent": True},
+            {"v": summary.get("avg_total_hari"), "l": "Rata-rata Total", "suffix": " hari"},
+            {"v": summary.get("med_total_hari"), "l": "Median Total", "suffix": " hari"},
+            {"v": summary.get("avg_approval_hari"), "l": "Rata-rata Approval", "suffix": " hari"},
+            {"v": summary.get("avg_exec_hari"), "l": "Eksekusi → Close", "suffix": " hari"},
+            {"v": summary.get("pct_dalam_7hari"), "l": "Selesai ≤ 7 Hari", "suffix": "%"},
+        ]
     if category == "kpi_site":
         return [
             {"v": summary["total_wo"], "l": "Total WO", "accent": True},
@@ -1116,6 +1125,18 @@ def build_recommendations(category, summary, table):
             add("tinggi", "{} request berstatus RE (tidak sesuai). Periksa alasan reject pada kolom deskripsi dan ajukan ulang bila perlu.".format(_f(s["rejected"])))
         if s.get("total") and s.get("closed") and s.get("closed") / s["total"] < 0.5:
             add("sedang", "Kurang dari setengah request telah selesai — tinjau prioritas penyelesaian request.")
+    elif category == "wo_durasi_proses":
+        add("info", "{} WO selesai pada periode ini; rata-rata proses {} hari (median {} hari), P90 {} hari. {}% WO tuntas dalam 7 hari.".format(
+            _f(s.get("total")), s.get("avg_total_hari"), s.get("med_total_hari"),
+            s.get("p90_total_hari"), s.get("pct_dalam_7hari")))
+        if s.get("pct_dalam_7hari") is not None and s["pct_dalam_7hari"] < 60:
+            add("tinggi", "Hanya {}% WO selesai dalam 7 hari. Percepat tahap approval dan penutupan untuk mengurangi bottleneck proses.".format(s["pct_dalam_7hari"]))
+        elif s.get("avg_total_hari") is not None and s["avg_total_hari"] > 10:
+            add("tinggi", "Durasi rata-rata {} hari — lambat. Identifikasi WO dengan durasi approval/klerikal terpanjang pada tabel di bawah untuk evaluasi SLA masing-masing tahap.".format(s["avg_total_hari"]))
+        if s.get("avg_exec_hari") is not None and s["avg_exec_hari"] > 3:
+            add("sedang", "Waktu rata-rata dari selesai eksekusi (CO) hingga close (CL) {} hari — periksa keterlambatan administrasi penutupan WO.".format(s["avg_exec_hari"]))
+        if s.get("avg_approval_hari") is not None and s["avg_approval_hari"] > 5:
+            add("sedang", "Waktu rata-rata approval & eksekusi {} hari. Tinjau SLA approver tiap level agar approval tidak menjadi antrean terpanjang.".format(s["avg_approval_hari"]))
     return recs
 
 
