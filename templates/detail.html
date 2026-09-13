@@ -6,6 +6,7 @@
   <title>{{ chart_title }} &middot; {{ dashboard_title }}</title>
   <script src="{{ url_for('static', filename='echarts.min.js') }}"></script>
   <script src="{{ url_for('static', filename='chart.js') }}"></script>
+  <script src="{{ url_for('static', filename='guides.js') }}"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -473,6 +474,82 @@
       font-size: 14px;
     }
     .error { color: #c0392b; }
+
+    .guide {
+      position: relative;
+      z-index: 1;
+      margin: 14px 24px 0;
+      background: #fff;
+      border: 1px solid #dbe7ee;
+      border-left: 4px solid #0fa3ad;
+      border-radius: 9px;
+      box-shadow: 0 1px 3px rgba(15,42,61,0.05);
+      overflow: hidden;
+    }
+    .guide summary {
+      list-style: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0c5c72;
+      background: #f2fafc;
+      user-select: none;
+    }
+    .guide summary::-webkit-details-marker { display: none; }
+    .guide summary .chev { margin-left: auto; color: #5b6472; transition: transform .15s ease; }
+    .guide[open] summary .chev { transform: rotate(90deg); }
+    .guide-body {
+      padding: 4px 16px 16px;
+      color: #33414f;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .guide-body h4 {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #0f2a3d;
+      margin: 14px 0 6px;
+      border-bottom: 1px solid #eef1f4;
+      padding-bottom: 4px;
+    }
+    .guide-body p, .guide-body ul, .guide-body ol { margin: 6px 0; }
+    .guide-body ul, .guide-body ol { padding-left: 20px; }
+    .guide-body li { margin: 3px 0; }
+    .guide-body table.g-cols {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+    .guide-body table.g-cols th,
+    .guide-body table.g-cols td {
+      border: 1px solid #eef1f4;
+      padding: 6px 10px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 12.5px;
+    }
+    .guide-body table.g-cols th {
+      background: #f7f9fb;
+      color: #0c5c72;
+      width: 32%;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .guide-body .g-tag {
+      display: inline-block;
+      background: #e7f3f6;
+      color: #0c5c72;
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-right: 4px;
+    }
+    .guide-body .g-note { font-size: 12px; color: #8a94a3; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -505,6 +582,11 @@
     <button class="btn-apply" id="btn-apply" type="button">Terapkan</button>
     <span class="right" id="lbl-updated"></span>
   </div>
+
+  <details class="guide" id="guide-box">
+    <summary><span>Panduan Membaca Halaman Ini</span><span class="chev">&rsaquo;</span></summary>
+    <div class="guide-body" id="guide-body"></div>
+  </details>
 
   <div class="card">
     <div class="card-title">Grafik</div>
@@ -616,6 +698,8 @@
       DR: "#8e44ad",
     };
     const CATEGORY = "{{ category }}";
+
+    renderGuide(document.getElementById("guide-body"), CATEGORY);
 
     let allRows = [];
     let docMap = {};
