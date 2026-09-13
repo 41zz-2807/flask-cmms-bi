@@ -4,25 +4,6 @@
  */
 window.BI_GUIDES = (function () {
 
-  var GLOSSARY =
-    '<div class="g-title">Istilah Umum yang Dipakai di Halaman Ini</div>' +
-    '<table class="g-cols">' +
-    '<tr><th>WO (Work Order)</th><td>Perintah/tugas kerja pemeliharaan yang tercatat di sistem CMMS. Satu WO = satu pekerjaan.</td></tr>' +
-    '<tr><th>SCH</th><td>WO <b>terjadwal</b> (rutin / preventive maintenance) — jadwal perawatan berkala.</td></tr>' +
-    '<tr><th>REQ</th><td>WO <b>permintaan</b> / tidak terjadwal (corrective / insidental) — karena ada kerusakan atau permintaan lain.</td></tr>' +
-    '<tr><th>CL (Closed)</th><td>WO sudah <b>selesai</b> dan ditutup.</td></tr>' +
-    '<tr><th>CO</th><td>WO baru <b>dibuat/dibuka</b> (Created) — belum diproses.</td></tr>' +
-    '<tr><th>RE</th><td>WO <b>diajukan</b> (Request) — menunggu persetujuan/proses berikutnya.</td></tr>' +
-    '<tr><th>IP</th><td>WO <b>sedang dikerjakan</b> (In Progress).</td></tr>' +
-    '<tr><th>DR</th><td>WO masih <b>draft/konsep</b> — belum lengkap.</td></tr>' +
-    '<tr><th>Open</th><td>Gabungan status yang <b>belum selesai</b>: CO + RE + IP + DR.</td></tr>' +
-    '<tr><th>Site</th><td>Lokasi/area kerja (HO, BCP - SENG, GHSF, SSDS &amp; SSGP, dll.).</td></tr>' +
-    '<tr><th>Periode</th><td>Rentang tanggal yang difilter (kolom <b>Dari</b> s/d <b>to</b>). Semua angka pada halaman mengikuti filter ini.</td></tr>' +
-    '</table>' +
-    '<p class="g-note">Penamaan kode status mengikuti sistem CMMS; keterangan dalam tanda kurung adalah pengertian umumnya agar mudah dipahami.</p>';
-
-  window.BI_GLOSSARY = GLOSSARY;
-
   return {
     home: {
       intro:
@@ -298,6 +279,5 @@ window.renderGuide = function (el, key) {
     });
     html += "</tbody></table></div>";
   }
-  if (g.glossary !== false) html += '<div class="g-sec g-gloss">' + window.BI_GLOSSARY + "</div>";
   el.innerHTML = html;
 };
