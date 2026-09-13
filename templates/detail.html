@@ -643,6 +643,9 @@
       no_wo: "No. WO",
       description: "Deskripsi",
       status: "Status",
+      status_workflow: "Status Workflow",
+      created_date: "Tanggal Dibuat",
+      closed_date: "Tanggal Selesai",
       tanggal: "Tanggal",
       aset: "Aset",
       sparepart: "Sparepart",
@@ -830,7 +833,7 @@
       const thead = document.getElementById("thead");
       const tbody = document.getElementById("tbody");
       const keys = rows.length ? Object.keys(rows[0]) : [];
-      const ordered = ["no_wo", "aset", "sch_total", "req_total", "sparepart", "jmlwo", "teknisi", "tipe", "tanggal", "status", "description", "deskripsi", "budget", "budget_closed", "durasi", "site", "total_wo", "sch", "req", "open", "pct_closed", "pct_pm", "avg_budget", "bulan", "total", "biaya", "mom_total", "yoy_total", "ma3_total", "seasonal", "qty", "share", "cum", "klas", "wo_total", "mttr", "mtbf", "last_date", "status_terakhir", "wo_cl", "med_hari", "p95_hari", "backlog", "kategori", "detail"]
+      const ordered = ["no_wo", "aset", "sch_total", "req_total", "sparepart", "jmlwo", "teknisi", "tipe", "tanggal", "status", "status_workflow", "created_date", "closed_date", "description", "deskripsi", "budget", "budget_closed", "durasi", "site", "total_wo", "sch", "req", "open", "pct_closed", "pct_pm", "avg_budget", "bulan", "total", "biaya", "mom_total", "yoy_total", "ma3_total", "seasonal", "qty", "share", "cum", "klas", "wo_total", "mttr", "mtbf", "last_date", "status_terakhir", "wo_cl", "med_hari", "p95_hari", "backlog", "kategori", "detail"]
         .filter(k => keys.includes(k));
       thead.innerHTML = "<tr>" + ordered.map(k => `<th>${COL_LABELS[k] || k}</th>`).join("") + "</tr>";
       tbody.innerHTML = "";
@@ -870,8 +873,8 @@
           else if (isWoCountKey(k) && attachWoDrill(td, r, k)) {
             /* sudah diisi button di attachWoDrill */
           }
-          else if (k === "tanggal") td.textContent = fmtDate(r[k]);
-          else if (k === "status" || k === "status_terakhir") {
+          else if (k === "tanggal" || k === "created_date" || k === "closed_date") td.textContent = fmtDate(r[k]);
+          else if (k === "status" || k === "status_workflow" || k === "status_terakhir") {
             const c = STATUS_COLORS[r[k]] || "#95a5a6";
             td.innerHTML = `<span class="status" style="background:${c}1a;color:${c}">${r[k] || "-"}</span>`;
           }

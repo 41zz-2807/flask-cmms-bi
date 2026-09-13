@@ -89,6 +89,11 @@ QUERIES = {
             ORDER BY y DESC;
         """,
     },
+    "wo_request": {
+        "title": "Daftar Request (WO Ber-REQ)",
+        "type": "none",
+        "sql": "SELECT 1 AS x, 0 AS y LIMIT 0;",
+    },
     "tren_bulanan": {
         "title": "Tren & Musiman WO Bulanan",
         "type": "line",
@@ -263,6 +268,25 @@ TABLE_SQL = {
         LEFT JOIN latest lt USING (aset)
         ORDER BY p.aset
     """,
+    "wo_request": """
+        SELECT w.om_wo_id AS wo_id, w.value AS no_wo, w.doc_status AS status,
+               COALESCE(h.last_status, w.doc_status) AS status_workflow,
+               w.created_date AS created_date, w.closed_date AS closed_date,
+               w.description
+        FROM om_wo w
+        LEFT JOIN LATERAL (
+            SELECT apprh.last_status
+            FROM om_wo_appr appr
+            INNER JOIN om_wo_appr_history apprh ON appr.om_wo_appr_id = apprh.om_wo_appr_id
+            WHERE appr.om_wo_id = w.om_wo_id
+            ORDER BY apprh.created_date DESC, apprh.om_wo_appr_history_id DESC
+            LIMIT 1
+        ) h ON TRUE
+        WHERE w.value ILIKE '%%REQ%%'
+          AND w.created_date BETWEEN %(start_date)s AND %(end_date)s
+          AND (%(m_org_ids)s IS NULL OR w.m_org_id = ANY(%(m_org_ids)s))
+        ORDER BY w.created_date DESC
+    """,
 }
 
 SUMMARY_SQL = {
@@ -351,6 +375,16 @@ SUMMARY_SQL = {
                COUNT(*) FILTER (WHERE type ILIKE 'REQ' AND classification = 10) AS gen
         FROM om_wo
         WHERE created_date BETWEEN %(start_date)s AND %(end_date)s
+          AND (%(m_org_ids)s IS NULL OR m_org_id = ANY(%(m_org_ids)s))
+    """,
+    "wo_request": """
+        SELECT COUNT(*) AS total,
+               COUNT(*) FILTER (WHERE doc_status IN ('CO','RE','IP','DR')) AS open,
+               COUNT(*) FILTER (WHERE doc_status = 'CL') AS closed,
+               COUNT(*) FILTER (WHERE doc_status = 'RE') AS rejected
+        FROM om_wo
+        WHERE value ILIKE '%%REQ%%'
+          AND created_date BETWEEN %(start_date)s AND %(end_date)s
           AND (%(m_org_ids)s IS NULL OR m_org_id = ANY(%(m_org_ids)s))
     """,
 }

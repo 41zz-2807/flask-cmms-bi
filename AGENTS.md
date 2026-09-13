@@ -17,6 +17,7 @@ Path: `/home/bilal/projects/flask_cmms_bi`
 - `.env` — kredensial DB (RAHASIA, file gitignored — lihat `manage_users.sh`/`NOTES.md` untuk acuan user), `DASHBOARD_TITLE=Aplikasi CMMS - Petroflexx OM`, `MEDIA_ROOT=/opt/tomcat/media`, `MEDIA_WO_PATH=.../WO`, `SECRET_KEY`.
 
 ## Perintah
+- **JANGAN commit & push sendiri. Hanya lakukan bila user MENULISKAN perintah commit/push secara eksplisit.** Selesaikan kerja, lalu beri tahu user & tunggu instruksi. (Aturan dari user.)
 - Rebuild + start: `docker compose up -d --build` (±95 detik).
 - Login test: `curl -s -c /tmp/cj.txt -b /tmp/cj.txt -d "username=superadmin&password=$SUPERADMIN_PASSWORD" http://localhost:8090/login` (302 = ok; nilai password superadmin & DB dari `prod.env`/`.env` yang GITIGNORED — jangan tulis kredensial asli di file ter-commit). Aplikasi di `http://localhost:8090` (PORT=8090 di `.env` & default compose, SAMA dengan port produksi; gunicorn internal tetap 8088).
 - PSQL cepat ke DB: `docker exec ikannya-baba-db psql -U petroflexx_om -d petroflexx_om -t -c "SQL"`.
@@ -31,7 +32,7 @@ Path: `/home/bilal/projects/flask_cmms_bi`
 - `m_user`: user (nama teknisi).
 
 ## Kategori laporan (QUERIES key)
-`asset_wo_frequency` (Aset paling sering meminta WO), `pm_compliance` (kepatuhan PM/SCH), `sparepart_fast_moving`, `technician_performance` (kinerja teknisi), `biaya_wo`, `asset_wo_summary` (**type "none", TANPA grafik — kartu grafik jangan di-render di PDF**), `kpi_site`, `tren_bulanan`, `pareto_sparepart`, `mtbf_mttr`, `profil_teknisi`, `data_quality`.
+`asset_wo_frequency` (Aset paling sering meminta WO), `pm_compliance` (kepatuhan PM/SCH), `sparepart_fast_moving`, `technician_performance` (kinerja teknisi), `biaya_wo`, `asset_wo_summary` (**type "none", TANPA grafik — kartu grafik jangan di-render di PDF**), `kpi_site`, `tren_bulanan`, `pareto_sparepart`, `mtbf_mttr`, `profil_teknisi`, `data_quality`, `wo_request` (Daftar Request: WO yg `value ILIKE '%%REQ%%'` — kolom No WO/Status/Status Workflow/Tgl Dibuat/Tgl Selesai/Deskripsi; `status_workflow` dari history approval terakhir via LATERAL; `type "none"`).
 
 Tipe grafik (chart_type): `none | pie | line | pareto | mtbf_mttr | teknisi | bar`. Renderer terpusat di `static/chart.js` (echarts).
 
@@ -77,6 +78,7 @@ Semua kolom jumlah WO (SCH/REQ/total) di halaman detail adalah tombol `btn-jml` 
 - Playwright di host: cookie Netscape punya prefix `#HttpOnly_` di kolom domain → parse gagal. Cara andal: login langsung di browser (fill username/password).
 
 ## Status (terakhir dikerjakan)
+- **Kartu "Daftar Request (WO Ber-REQ)"** (kategori `wo_request`, type none) selesai: card di grup "Ringkasan & KPI" dashboard, tabel No WO / Status / Status Workflow / Tanggal Dibuat / Tanggal Selesai / Deskripsi, summary Total/Selesai/Belum Selesai/Di-Reject, rekomendasi, export CSV & PDF OK. `status_workflow` = `last_status` approval terakhir (LATERAL ke om_wo_appr_history). Catatan: query pakai liter `'%%REQ%%'` (psycopg2 butuh double-%) karena ada named params.
 - SEMUA fitur dashboard BI (Pareto, MTBF/MTTR, Profil Teknisi, Data Quality, dashboard 5 seksi, chart echarts lokal, drill WO, CATALOG PDF) sudah selesai & diverifikasi.
 - PDF: header seragam, konten dinamis, chart tidak overflow, kartu grafik dihilangkan utk `asset_wo_summary` (type none), teks "Aplikasi CMMS" (bukan "Maintenance CMMS") di semua title.
 - build image container playwright+chromium OK.

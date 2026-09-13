@@ -42,6 +42,22 @@ window.BI_GUIDES = (function () {
         ["avg_budget", "Rata-rata biaya per WO."],
       ],
     },
+    wo_request: {
+      intro:
+        '<p>Menampilkan <b>permintaan (request)</b> yang nomor WO-nya memuat tanda <b>REQ</b> (contoh: <code>PPD-BCP-SENG-REQ-20260900128</code>). Kartu ini memudahkan menelusuri request yang diajukan pada periode terpilih — baik yang sedang diproses, sudah selesai, maupun yang di-reject.</p>' +
+        '<p>Catatan: jika tidak ada request pada periode itu, tabel akan kosong ("Tidak ada data").</p>',
+      chart: null,
+      table:
+        '<p>Baris = satu request WO. Susunan berdasarkan <b>tanggal dibuat</b> terbaru di atas. Gunakan tombol <b>Unduh PDF / CSV</b> bila perlu rekapitulasi.</p>',
+      columns: [
+        ["no_wo", "Nomor WO (berisi tanda REQ). Klik untuk membuka dokumen WO bila tersedia."],
+        ["status", "Status dokumen: <span class=\"g-tag\">CL</span> closed/selesai, <span class=\"g-tag\">CO</span> created/baru, <span class=\"g-tag\">IP</span> in progress/sedang dikerjakan, <span class=\"g-tag\">RE</span> request/diajukan (bisa berarti menunggu atau di-reject), <span class=\"g-tag\">DR</span> draft."],
+        ["status_workflow", "Tahap terakhir alur persetujuan (workflow) di sistem — status terbaru dari riwayat approval. Sama dengan kode pada kolom Status."],
+        ["created_date", "Tanggal WO dibuat/diajukan."],
+        ["closed_date", "Tanggal WO ditutup. Kosong berarti belum selesai."],
+        ["description", "Uraian/perintah kerja pada request. Bila status di-reject, biasanya ada keterangan 'Alasan Reject' di sini."],
+      ],
+    },
     tren_bulanan: {
       intro:
         '<p>Menampilkan <b>pola dan arah</b> jumlah pekerjaan dari bulan ke bulan, lengkap dengan indikator musiman. Berguna untuk merencanakan kapasitas teknis (apakah beban sedang naik atau menurun).</p>',

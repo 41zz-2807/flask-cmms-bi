@@ -248,7 +248,7 @@ def doc_file(wo_id, filename):
 @login_required
 def index():
     groups = [
-        ("Ringkasan & KPI", ["kpi_site", "tren_bulanan", "biaya_wo"]),
+        ("Ringkasan & KPI", ["kpi_site", "tren_bulanan", "biaya_wo", "wo_request"]),
         ("Pemeliharaan & Keandalan", ["asset_wo_summary", "pm_compliance", "mtbf_mttr", "asset_wo_frequency"]),
         ("Sparepart & Material", ["pareto_sparepart", "sparepart_fast_moving"]),
         ("Sumber Daya & Teknisi", ["profil_teknisi", "technician_performance"]),
@@ -786,6 +786,13 @@ def build_cards(category, summary):
             {"v": summary.get("sip"), "l": "SIP", "t": "SIPIL"},
             {"v": summary.get("gen"), "l": "GEN", "t": "GENERAL"},
         ]
+    if category == "wo_request":
+        return [
+            {"v": summary.get("total"), "l": "Total Request", "accent": True},
+            {"v": summary.get("closed"), "l": "Selesai (CL)", "accent": True},
+            {"v": summary.get("open"), "l": "Belum Selesai", "accent": True},
+            {"v": summary.get("rejected"), "l": "Di-Reject (RE)", "accent": True},
+        ]
     if category == "kpi_site":
         return [
             {"v": summary["total_wo"], "l": "Total WO", "accent": True},
@@ -1102,6 +1109,13 @@ def build_recommendations(category, summary, table):
         if s.get("mec"):
             add("info", "Klasifikasi REQ: {} mekanikal, {} instrument, {} sipil, {} general.".format(
                 _f(s.get("mec")), _f(s.get("ine")), _f(s.get("sip")), _f(s.get("gen"))))
+    elif category == "wo_request":
+        add("info", "Periode ini tercatat {} request (nomor WO ber-REQ); {} sudah selesai, {} belum selesai, {} di-reject.".format(
+            _f(s.get("total")), _f(s.get("closed")), _f(s.get("open")), _f(s.get("rejected"))))
+        if s.get("rejected"):
+            add("tinggi", "{} request berstatus RE (tidak sesuai). Periksa alasan reject pada kolom deskripsi dan ajukan ulang bila perlu.".format(_f(s["rejected"])))
+        if s.get("total") and s.get("closed") and s.get("closed") / s["total"] < 0.5:
+            add("sedang", "Kurang dari setengah request telah selesai — tinjau prioritas penyelesaian request.")
     return recs
 
 
