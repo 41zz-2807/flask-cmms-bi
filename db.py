@@ -54,7 +54,8 @@ def _data_params():
             conn.close()
         enabled = None
         overrides = {}
-        for key, value in rows or []:
+        for row in rows or []:
+            key, value = row["key"], row.get("value")
             if key == "db_override_enabled":
                 enabled = str(value or "").strip().lower() in ("1", "true", "yes", "on")
             elif key.startswith("db_") and key != "db_override_enabled":
