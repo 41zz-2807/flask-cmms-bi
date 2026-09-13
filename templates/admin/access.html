@@ -1,0 +1,69 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<style>
+  .panel { background: #fff; border: 1px solid #e2e6ea; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(15,42,61,0.06); }
+  .panel h2 { font-size: 14px; font-weight: 700; color: #0f2a3d; margin-bottom: 12px; }
+  .panel p.hint { font-size: 12.5px; color: #5b6472; margin-bottom: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { text-align: left; padding: 9px 12px; background: #f7f9fb; color: #5b6472; font-weight: 600; border-bottom: 1px solid #e2e6ea; }
+  tbody td { padding: 9px 12px; border-bottom: 1px solid #eef1f4; vertical-align: middle; }
+  tbody tr:hover td { background: #f7fafb; }
+  .badge { border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
+  .b-superadmin { background: #8e44ad; color: #fff; }
+  .b-admin { background: #0c5c72; color: #fff; }
+  .b-user { background: #eef1f4; color: #5b6472; }
+  .btn-sm {
+    border: 1px solid #9fc4d8; background: #fff; color: #0c5c72;
+    border-radius: 7px; padding: 7px 14px; font-size: 12.5px; font-weight: 600;
+    cursor: pointer; text-decoration: none; display: inline-block;
+  }
+  .btn-sm:hover { background: #e8f4f8; }
+</style>
+
+<div class="panel">
+  <h2>Visibilitas Dashboard per User</h2>
+  <p class="hint">
+    Pilih kategori dashboard detail (per laporan CMMS) yang boleh dibuka tiap user, termasuk
+    <b>Perbandingan Dinamis</b>. Role <b>superadmin</b> selalu melihat semua; user biasa tanpa
+    item apa pun hanya melihat dashboard kosong. Panel administrasi khusus <b>superadmin</b>.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>User</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Kategori Terlihat</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td><strong>{{ u.username }}</strong> <span style="color:#8a94a3; font-size:12px;">({{ u.full_name }})</span></td>
+        <td><span class="badge b-{{ u.role }}">{{ u.role }}</span></td>
+        <td>{% if u.is_active %}<span style="color:#1e7a46; font-weight:700;">Aktif</span>{% else %}<span style="color:#b03a30; font-weight:700;">Nonaktif</span>{% endif %}</td>
+        <td>
+          {% if u.role == 'superadmin' %}
+            Semua ({{ categories|length }})
+          {% elif u.n_access %}
+            {{ u.n_access }} dari {{ categories|length }} kategori
+          {% else %}
+            <span style="color:#b03a30;">Belum ada akses</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if u.role != 'superadmin' and u.is_active %}
+          <a class="btn-sm" href="{{ url_for('admin.user_access', username=u.username) }}">Atur Akses &rarr;</a>
+          {% elif u.role == 'superadmin' %}
+          <span style="color:#8a94a3; font-size:12px;">Akses penuh</span>
+          {% else %}
+          <span style="color:#8a94a3; font-size:12px;">User nonaktif</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

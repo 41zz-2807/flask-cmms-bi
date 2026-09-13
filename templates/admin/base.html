@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Panel Administrasi{% endblock %} &middot; {{ dashboard_title }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", Helvetica, Arial, sans-serif;
+      color: #20242a;
+      background: #eef2f6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .topbar {
+      background: #0f2a3d;
+      color: #fff;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .topbar h1 { font-size: 16px; font-weight: 600; white-space: nowrap; }
+    .topbar .sub { font-size: 12px; color: #9fc4d8; }
+    .topbar .spacer { flex: 1; }
+    .topbar .role-badge {
+      background: #8e44ad;
+      color: #fff;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .topbar a {
+      color: #d7e7f1;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .topbar a:hover { color: #fff; }
+    .topbar .btn-dash {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 7px;
+      padding: 5px 12px;
+    }
+    nav {
+      background: #fff;
+      border-bottom: 1px solid #e2e6ea;
+      display: flex;
+      gap: 6px;
+      padding: 8px 24px;
+      flex-wrap: wrap;
+    }
+    nav a {
+      color: #33414f;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 8px;
+    }
+    nav a:hover { background: #f0f5f8; }
+    nav a.active { background: #0c5c72; color: #fff; }
+    .content { flex: 1; padding: 20px 24px 30px; max-width: 1200px; width: 100%; margin: 0 auto; }
+    .flash { max-width: 1200px; width: 100%; margin: 12px auto 0; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+    .flash.ok { background: #e6f6ec; color: #1e7a46; border: 1px solid #b8e7c9; }
+    .flash.error { background: #fdebec; color: #b03a30; border: 1px solid #f6c7c4; }
+    .app-footer {
+      text-align: center;
+      padding: 16px;
+      color: #8a94a3;
+      font-size: 12px;
+    }
+    .app-footer .license { color: #0c5c72; font-weight: 600; }
+    .app-footer .version { margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>Panel Administrasi</h1>
+    <div class="sub">{{ dashboard_title }}</div>
+    <div class="spacer"></div>
+    <span class="role-badge">{{ user_role }}</span>
+    <span style="font-size:13px; font-weight:600;">{{ current_full_name }}</span>
+    <a class="btn-dash" href="/">Dashboard BI</a>
+    <a class="btn-dash" href="{{ url_for('logout') }}">Keluar</a>
+  </div>
+
+  <nav>
+    <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if request.endpoint == 'admin.dashboard' }}">Dashboard</a>
+    <a href="{{ url_for('admin.users') }}" class="{{ 'active' if request.endpoint == 'admin.users' }}">Pengguna</a>
+    <a href="{{ url_for('admin.access') }}" class="{{ 'active' if request.endpoint == 'admin.access' }}">Akses Dashboard</a>
+    <a href="{{ url_for('admin.server') }}" class="{{ 'active' if request.endpoint == 'admin.server' }}">Data CMMS</a>
+    <a href="{{ url_for('admin.smtp') }}" class="{{ 'active' if request.endpoint == 'admin.smtp' }}">Email SMTP</a>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for cat, msg in messages %}
+        <div class="flash {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+
+  <div class="app-footer">
+    <span class="license">{{ license_text }}</span>
+    <span class="version">{{ app_version }}</span>
+  </div>
+</body>
+</html>

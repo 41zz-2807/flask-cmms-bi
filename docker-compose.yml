@@ -1,0 +1,33 @@
+name: flask-cmms-bi
+
+services:
+  web:
+    build: .
+    image: flask-cmms-bi
+    container_name: flask-cmms-bi
+    restart: unless-stopped
+    environment:
+      DB_HOST: ${DB_HOST:-ikannya-baba-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-petroflexx_om}
+      DB_USER: ${DB_USER:-bi_readonly}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD di .env}
+      DASHBOARD_TITLE: ${DASHBOARD_TITLE:-Aplikasi CMMS - Petroflexx OM}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY di .env}
+      MEDIA_WO_PATH: ${MEDIA_WO_PATH:-/opt/tomcat/media/WO}
+      MEDIA_ROOT: ${MEDIA_ROOT:-/opt/tomcat/media}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    ports:
+      - "${PORT:-8090}:8088"
+    volumes:
+      - ./data/media:/opt/tomcat/media:ro
+    networks:
+      cmms-net:
+        aliases:
+          - flask-cmms-bi
+
+networks:
+  cmms-net:
+    external: true
+    name: cmms-bi_cmms-net

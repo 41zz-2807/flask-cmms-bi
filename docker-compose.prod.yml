@@ -1,0 +1,24 @@
+name: flask-cmms-bi-prod
+
+services:
+  web:
+    build: .
+    image: flask-cmms-bi
+    container_name: flask-cmms-bi-prod
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      DB_HOST: ${DB_HOST:-127.0.0.1}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-petroflexx_om}
+      DB_USER: ${DB_USER:-petroflexx_om}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      DASHBOARD_TITLE: ${DASHBOARD_TITLE:-Aplikasi CMMS - Petroflexx OM}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY di prod.env}
+      MEDIA_WO_PATH: ${MEDIA_WO_PATH:-/opt/tomcat/media/WO}
+      MEDIA_ROOT: ${MEDIA_ROOT:-/opt/tomcat/media}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    volumes:
+      - /opt/tomcat/media:/opt/tomcat/media:ro
+    command: gunicorn --bind 127.0.0.1:${PORT:-8090} --workers 2 --threads 4 app:app

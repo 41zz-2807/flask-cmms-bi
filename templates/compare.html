@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perbandingan Dinamis &middot; {{ dashboard_title }}</title>
+  <script src="{{ url_for('static', filename='echarts.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='chart.js') }}"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", Helvetica, Arial, sans-serif;
+      color: #20242a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: url("{{ url_for('static', filename='background.jpg') }}") center / cover no-repeat;
+      z-index: 0;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(12, 39, 59, 0.82), rgba(0, 120, 150, 0.72));
+      z-index: 0;
+    }
+    .header, .panel, .card, .table-card, .app-footer, .loading, .error, .center {
+      position: relative;
+      z-index: 1;
+    }
+    .header {
+      background: #0f2a3d;
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .back {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .back:hover { background: rgba(255,255,255,0.12); }
+    .header h1 { font-size: 17px; font-weight: 600; }
+    .header .sub { font-size: 12px; color: #9fc4d8; white-space: nowrap; }
+    .header .user-box { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+    .header .user-name { font-size: 13px; color: #d7e7f1; white-space: nowrap; }
+    .btn-logout {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 7px;
+      padding: 5px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.22); }
+
+    .page { padding: 18px 24px 30px; position: relative; z-index: 1; }
+    .panel {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e2e6ea;
+      box-shadow: 0 1px 3px rgba(15,42,61,0.06);
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+    .panel h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0c5c72;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eef1f4;
+    }
+    .panel-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .panel-row .panel { flex: 1 1 320px; }
+
+    .cmp-group {
+      border: 1px solid #e2e6ea;
+      border-left: 4px solid #0fa3ad;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      background: #fcfdfe;
+    }
+    .cmp-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .cmp-no {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: #0fa3ad;
+      border-radius: 999px;
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+    .cmp-label {
+      flex: 1;
+      border: 1px solid #cfd6dd;
+      border-radius: 7px;
+      padding: 7px 10px;
+      font-size: 13px;
+      color: #20242a;
+      background: #fff;
+      min-width: 140px;
+    }
+    .cmp-del {
+      border: none;
+      background: #fdf0ef;
+      color: #c0392b;
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      font-size: 16px;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .cmp-del:hover { background: #f6dcd9; }
+    .cmp-fields { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .cmp-fields .fgroup input[type="date"],
+    .cmp-fields select,
+    .cmp-fields input[type="text"] {
+      border: 1px solid #cfd6dd;
+      border-radius: 7px;
+      padding: 7px 10px;
+      font-size: 12.5px;
+      color: #20242a;
+      background: #fff;
+    }
+    .cmp-fields .fgroup { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .cmp-fields .fgroup label { font-size: 12px; font-weight: 600; color: #5b6472; }
+    .cmp-fields .cmp-aset, .cmp-fields .cmp-teknisi { min-width: 170px; }
+
+    .msite { position: relative; }
+    .msite-btn {
+      border: 1px solid #cfd6dd;
+      border-radius: 7px;
+      background: #fff;
+      color: #20242a;
+      padding: 7px 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .msite-btn:hover { border-color: #9fc4d8; }
+    .msite-pop {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 9999;
+      min-width: 230px;
+      max-height: 260px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #cfd6dd;
+      border-radius: 9px;
+      box-shadow: 0 12px 28px rgba(15,42,61,0.18);
+      padding: 6px;
+    }
+    .msite-pop.open { display: block; }
+    .msite-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .msite-item:hover { background: #f4f8fa; }
+    .msite-item input { accent-color: #0c5c72; width: 15px; height: 15px; cursor: pointer; }
+    .msite-item .site-name { flex: 1; font-size: 12.5px; }
+    .msite-item .site-count { font-size: 11px; color: #8a94a3; background: #eef1f4; border-radius: 999px; padding: 2px 8px; }
+
+    .metric-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+    .metric-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid #e2e6ea;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      background: #fff;
+      font-size: 12.5px;
+    }
+    .metric-item:hover { border-color: #9fc4d8; }
+    .metric-item input { accent-color: #0c5c72; width: 15px; height: 15px; cursor: pointer; }
+
+    .panel select {
+      border: 1px solid #cfd6dd;
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 13px;
+      background: #fff;
+      color: #20242a;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    .panel select:last-child { margin-bottom: 0; }
+
+    .btn-apply {
+      border: 1px solid #1985a0;
+      background: #1985a0;
+      color: #fff;
+      border-radius: 999px;
+      padding: 6px 16px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-apply:hover { background: #0c6d86; }
+    .btn-big { padding: 11px 34px; font-size: 14px; }
+    .btn-outline {
+      border: 1px dashed #1985a0;
+      background: #eff8fa;
+      color: #0c5c72;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-outline:hover { background: #e0f1f5; }
+    .center { text-align: center; margin: 6px 0 18px; }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e2e6ea;
+      box-shadow: 0 1px 3px rgba(15,42,61,0.06);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+    .card .card-title {
+      padding: 14px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f2a3d;
+      border-bottom: 1px solid #eef1f4;
+    }
+    .chart { width: 100%; height: 420px; }
+
+    .table-card {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e2e6ea;
+      box-shadow: 0 1px 3px rgba(15,42,61,0.06);
+      overflow: hidden;
+    }
+    .table-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      border-bottom: 1px solid #eef1f4;
+      flex-wrap: wrap;
+    }
+    .table-head h2 { font-size: 14px; font-weight: 600; color: #0f2a3d; }
+    .table-head .count { font-size: 12px; color: #8a94a3; }
+    .table-head .spacer { flex: 1; }
+    .table-wrap { overflow: auto; max-height: 560px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #f7f9fb;
+      color: #5b6472;
+      text-align: left;
+      font-weight: 600;
+      padding: 10px 14px;
+      border-bottom: 1px solid #e2e6ea;
+      border-right: 1px solid #e2e6ea;
+      white-space: nowrap;
+    }
+    thead th:last-child, tbody td:last-child { border-right: none; }
+    tbody td {
+      padding: 9px 14px;
+      border-bottom: 1px solid #eef1f4;
+      border-right: 1px solid #eef1f4;
+      vertical-align: top;
+    }
+    tbody tr.avg-row td { background: #f2f8fa; font-weight: 600; }
+    td.grp-label { font-weight: 600; color: #0f2a3d; white-space: nowrap; }
+    td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td.num .cur { display: inline-block; width: 24px; text-align: left; color: #5b6472; font-weight: 600; }
+    td.num .amt { display: inline-block; text-align: right; font-variant-numeric: tabular-nums; }
+    .dlt { display: block; font-size: 11px; margin-top: 2px; }
+    .dlt.up { color: #27ae60; }
+    .dlt.down { color: #c0392b; }
+    .dlt.zero { color: #8a94a3; }
+    .loading, .error {
+      padding: 60px 20px;
+      text-align: center;
+      color: #8a94a3;
+      font-size: 14px;
+    }
+    .error { color: #c0392b; }
+    .hidden { display: none; }
+
+    .loader-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: rgba(9, 22, 31, 0.86);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .loader-overlay.show { display: flex; }
+    .loader-overlay .loader-inner { text-align: center; }
+    #load {
+      position: relative;
+      width: 600px;
+      height: 36px;
+      margin: 0 auto;
+      -webkit-user-select: none;
+      user-select: none;
+      cursor: default;
+    }
+    #load div {
+      position: absolute;
+      width: 20px;
+      height: 36px;
+      opacity: 0;
+      font-family: Helvetica, Arial, sans-serif;
+      font-weight: 700;
+      -webkit-animation: move 2s linear infinite;
+      animation: move 2s linear infinite;
+      -webkit-transform: rotate(180deg);
+      transform: rotate(180deg);
+      color: #35C4F0;
+    }
+    #load div:nth-child(2) { -webkit-animation-delay: 0.2s; animation-delay: 0.2s; }
+    #load div:nth-child(3) { -webkit-animation-delay: 0.4s; animation-delay: 0.4s; }
+    #load div:nth-child(4) { -webkit-animation-delay: 0.6s; animation-delay: 0.6s; }
+    #load div:nth-child(5) { -webkit-animation-delay: 0.8s; animation-delay: 0.8s; }
+    #load div:nth-child(6) { -webkit-animation-delay: 1s; animation-delay: 1s; }
+    #load div:nth-child(7) { -webkit-animation-delay: 1.2s; animation-delay: 1.2s; }
+    @keyframes move {
+      0% { left: 0; opacity: 0; }
+      35% { left: 41%; transform: rotate(0deg); opacity: 1; }
+      65% { left: 59%; transform: rotate(0deg); opacity: 1; }
+      100% { left: 100%; transform: rotate(-180deg); opacity: 0; }
+    }
+    .loader-msg {
+      margin-top: 16px;
+      font-size: 13.5px;
+      color: #bcd7e6;
+      letter-spacing: 0.5px;
+    }
+
+    .app-footer {
+      margin-top: auto;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 18px 16px 24px;
+      color: #9fc4d8;
+      font-size: 12px;
+    }
+    .app-footer .license { color: #d7e7f1; font-weight: 600; }
+    .app-footer .version { margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <a class="back" href="/">&larr; Dashboard</a>
+    <h1>Perbandingan Dinamis</h1>
+    <div class="sub">{{ dashboard_title }}</div>
+    <div class="user-box">
+      <span class="user-name">{{ current_full_name }}</span>
+      <a class="btn-logout" href="{{ url_for('logout') }}">Keluar</a>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="panel">
+      <h3>1. Definisikan Grup Perbandingan</h3>
+      <div id="group-list"></div>
+      <button class="btn-outline" id="btn-add" type="button">+ Tambah Grup</button>
+    </div>
+
+    <div class="panel-row">
+      <div class="panel">
+        <h3>2. Pilih Metrik yang Dibandingkan</h3>
+        <div class="metric-list" id="metric-list"></div>
+      </div>
+      <div class="panel">
+        <h3>3. Acuan Perbandingan (Delta)</h3>
+        <select id="base-select" title="Grup acuan untuk kolom delta"></select>
+        <h3>4. Metrik untuk Grafik</h3>
+        <select id="chart-metric" title="Metrik yang digambar pada grafik"></select>
+      </div>
+    </div>
+
+    <div class="center">
+      <button class="btn-apply btn-big" id="btn-hitung" type="button">Hitung Perbandingan</button>
+    </div>
+
+    <div id="result" class="hidden">
+      <div class="card">
+        <div class="card-title" id="chart-title">Grafik</div>
+        <div class="chart" id="chart"></div>
+      </div>
+      <div class="table-card">
+        <div class="table-head">
+          <h2>Hasil Perbandingan</h2>
+          <span class="count" id="lbl-count"></span>
+          <span class="spacer"></span>
+          <a class="btn-export btn-apply" id="btn-pdf">Unduh Laporan (PDF)</a>
+        </div>
+        <div class="table-wrap">
+          <table id="table">
+            <thead id="thead"></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-footer">
+    <span class="license">{{ license_text }}</span>
+    <span class="version">{{ app_version }}</span>
+  </div>
+
+  <datalist id="aset-list"></datalist>
+  <datalist id="teknisi-list"></datalist>
+
+  <div class="loader-overlay" id="pdf-load" aria-hidden="true">
+    <div class="loader-inner">
+      <div id="load">
+        <div>G</div><div>N</div><div>I</div><div>D</div><div>A</div><div>O</div><div>L</div>
+      </div>
+      <div class="loader-msg">Menyiapkan laporan PDF ...</div>
+    </div>
+  </div>
+
+  <script>
+    const METRICS = [
+      { key: "total_wo", label: "Total WO", kind: "int" },
+      { key: "sch", label: "WO SCH", kind: "int" },
+      { key: "req", label: "WO REQ", kind: "int" },
+      { key: "open", label: "WO Open", kind: "int" },
+      { key: "closed", label: "WO Closed", kind: "int" },
+      { key: "pct_closed", label: "% Closed", kind: "pct" },
+      { key: "budget", label: "Biaya Total (Rp)", kind: "money" },
+      { key: "avg_budget", label: "Rata-rata/WO (Rp)", kind: "money" },
+      { key: "backlog", label: "Backlog (WO)", kind: "int" },
+    ];
+    const DEFAULT_METRICS = ["total_wo", "sch", "req", "pct_closed", "budget"];
+
+    const sitesCache = [];
+    let groupsData = [];
+
+    function toDate(d) { return d.toISOString().split("T")[0]; }
+    function newGroup() {
+      const now = new Date();
+      return {
+        label: "", from: toDate(new Date(now - 30 * 864e5)), to: toDate(now),
+        sites: new Set(), tipe: "", aset: "", teknisi: "",
+      };
+    }
+
+    function fmt(value) {
+      return Number(value).toLocaleString("id-ID", { maximumFractionDigits: 0 });
+    }
+    function fmtMoneyHtml(value) {
+      return '<span class="cur">Rp</span><span class="amt">' +
+        Number(value).toLocaleString("id-ID", { maximumFractionDigits: 0 }) + "</span>";
+    }
+    function fmtMetricHtml(m, v) {
+      if (v === null || v === undefined) return "-";
+      if (m.kind === "money") return fmtMoneyHtml(v);
+      if (m.kind === "pct") return fmt(v) + "%";
+      return fmt(v);
+    }
+
+    async function loadSites() {
+      try {
+        const res = await fetch("/api/sites");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const { sites } = await res.json();
+        sitesCache.length = 0;
+        sitesCache.push(...sites);
+      } catch (e) { /* ignore */ }
+    }
+
+    async function loadRefs() {
+      try {
+        const res = await fetch("/api/refs");
+        if (!res.ok) return;
+        const refs = await res.json();
+        document.getElementById("aset-list").innerHTML =
+          refs.aset.map(a => `<option value="${a.replace(/"/g, "&quot;")}">`).join("");
+        document.getElementById("teknisi-list").innerHTML =
+          refs.teknisi.map(t => `<option value="${t.replace(/"/g, "&quot;")}">`).join("");
+      } catch (e) { /* ignore */ }
+    }
+
+    function buildMetricList() {
+      const box = document.getElementById("metric-list");
+      box.innerHTML = "";
+      METRICS.forEach(m => {
+        const row = document.createElement("label");
+        row.className = "metric-item";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.value = m.key;
+        cb.checked = DEFAULT_METRICS.includes(m.key);
+        const span = document.createElement("span");
+        span.textContent = m.label;
+        row.append(cb, span);
+        box.appendChild(row);
+      });
+    }
+
+    function syncMsiteLabel(g) {
+      const el = document.querySelector(`.cmp-group[data-idx="${g._i}"] .msite-label`);
+      if (!el) return;
+      if (g.sites.size === 0) {
+        el.textContent = "Semua Site";
+      } else {
+        const names = sitesCache.filter(s => g.sites.has(String(s.site_id))).map(s => s.site_name);
+        el.textContent = names.length <= 2 ? names.join(", ") : names.length + " site dipilih";
+      }
+    }
+
+    function renderGroups() {
+      const wrap = document.getElementById("group-list");
+      wrap.innerHTML = "";
+      groupsData.forEach((g, i) => {
+        g._i = i;
+        const el = document.createElement("div");
+        el.className = "cmp-group";
+        el.dataset.idx = i;
+        el.innerHTML = `
+          <div class="cmp-top">
+            <span class="cmp-no">Grup ${i + 1}</span>
+            <input class="cmp-label" type="text" placeholder="Label (mis. Jan-Mar GHSF)" value="${g.label.replace(/"/g, "&quot;")}">
+            <button class="cmp-del" type="button" title="Hapus grup">&times;</button>
+          </div>
+          <div class="cmp-fields">
+            <div class="fgroup">
+              <label>Dari</label>
+              <input type="date" class="cmp-from" value="${g.from}">
+              <label>s/d</label>
+              <input type="date" class="cmp-to" value="${g.to}">
+            </div>
+            <div class="msite">
+              <button class="msite-btn" type="button">
+                <span class="msite-label">Semua Site</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5b6472" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <div class="msite-pop"></div>
+            </div>
+            <select class="cmp-tipe">
+              <option value="">Semua Tipe</option>
+              <option value="SCH">SCH</option>
+              <option value="REQ">REQ</option>
+            </select>
+            <input class="cmp-aset" type="text" list="aset-list" placeholder="Aset (opsional)" value="${g.aset.replace(/"/g, "&quot;")}">
+            <input class="cmp-teknisi" type="text" list="teknisi-list" placeholder="Teknisi (opsional)" value="${g.teknisi.replace(/"/g, "&quot;")}">
+          </div>`;
+        wrap.appendChild(el);
+
+        el.querySelector(".cmp-tipe").value = g.tipe;
+        el.querySelector(".cmp-label").addEventListener("input", e => { g.label = e.target.value; });
+        el.querySelector(".cmp-from").addEventListener("change", e => { g.from = e.target.value; });
+        el.querySelector(".cmp-to").addEventListener("change", e => { g.to = e.target.value; });
+        el.querySelector(".cmp-tipe").addEventListener("change", e => { g.tipe = e.target.value; });
+        el.querySelector(".cmp-aset").addEventListener("input", e => { g.aset = e.target.value; });
+        el.querySelector(".cmp-teknisi").addEventListener("input", e => { g.teknisi = e.target.value; });
+        el.querySelector(".cmp-del").addEventListener("click", () => {
+          if (groupsData.length <= 2) return;
+          groupsData.splice(i, 1);
+          renderGroups();
+          renderBaseSelect();
+        });
+
+        const pop = el.querySelector(".msite-pop");
+        sitesCache.forEach(s => {
+          const row = document.createElement("label");
+          row.className = "msite-item";
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.value = String(s.site_id);
+          cb.checked = g.sites.has(cb.value);
+          cb.addEventListener("change", () => {
+            if (cb.checked) g.sites.add(cb.value);
+            else g.sites.delete(cb.value);
+            syncMsiteLabel(g);
+          });
+          const name = document.createElement("span");
+          name.className = "site-name";
+          name.textContent = s.site_name;
+          const cnt = document.createElement("span");
+          cnt.className = "site-count";
+          cnt.textContent = fmt(s.total_wo);
+          row.append(cb, name, cnt);
+          pop.appendChild(row);
+        });
+        const btn = el.querySelector(".msite-btn");
+        btn.addEventListener("click", e => {
+          e.stopPropagation();
+          document.querySelectorAll(".msite-pop.open").forEach(p => { if (p !== pop) p.classList.remove("open"); });
+          pop.classList.toggle("open");
+        });
+        syncMsiteLabel(g);
+      });
+      document.addEventListener("click", e => {
+        if (!e.target.closest(".cmp-group")) {
+          document.querySelectorAll(".msite-pop.open").forEach(p => p.classList.remove("open"));
+        }
+      });
+    }
+
+    function renderBaseSelect() {
+      const sel = document.getElementById("base-select");
+      const idx = sel.selectedIndex > 0 ? sel.selectedIndex : 0;
+      sel.innerHTML = groupsData.map((g, i) =>
+        `<option value="${i}">Grup ${i + 1}${g.label ? " — " + g.label.replace(/"/g, "&quot;") : ""}</option>`).join("");
+      sel.selectedIndex = Math.min(idx, groupsData.length - 1);
+    }
+
+    function selectedMetrics() {
+      return Array.from(document.querySelectorAll("#metric-list input:checked")).map(cb => cb.value);
+    }
+
+    function renderChartMetric() {
+      const sel = document.getElementById("chart-metric");
+      const mets = selectedMetrics().length ? selectedMetrics() : [METRICS[0].key];
+      sel.innerHTML = mets.map((k, i) => {
+        const m = METRICS.find(x => x.key === k);
+        return `<option value="${k}">${m ? m.label : k}</option>`;
+      }).join("");
+      sel.selectedIndex = 0;
+    }
+
+    function collectPayload() {
+      const groups = groupsData.map(g => ({
+        label: g.label,
+        from: g.from,
+        to: g.to,
+        sites: Array.from(g.sites),
+        tipe: g.tipe,
+        aset: g.aset,
+        teknisi: g.teknisi,
+      }));
+      const metrics = selectedMetrics();
+      const base = parseInt(document.getElementById("base-select").value, 10) || 0;
+      return { groups, metrics, base };
+    }
+
+    async function hitung() {
+      const target = document.getElementById("result");
+      target.classList.remove("hidden");
+      document.getElementById("lbl-count").textContent = "Menghitung ...";
+      const container = document.getElementById("chart");
+      container.innerHTML = '<div class="loading">Menghitung perbandingan...</div>';
+      try {
+        const res = await fetch("/api/compare", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(collectPayload()),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || ("HTTP " + res.status));
+        }
+        renderResults(await res.json());
+      } catch (e) {
+        document.getElementById("tbody").innerHTML =
+          '<tr><td class="loading" colspan="10">Gagal menghitung: ' + e.message + "</td></tr>";
+        container.innerHTML = '<div class="error">' + e.message + "</div>";
+      }
+    }
+
+    function renderResults(data) {
+      const mets = data.metrics;
+      document.getElementById("lbl-count").textContent =
+        data.groups.length + " grup · acuan: " + data.base_label;
+      document.getElementById("chart-title").textContent =
+        "Grafik — " + (METRICS.find(m => m.key === document.getElementById("chart-metric").value) || {}).label;
+
+      const thead = document.getElementById("thead");
+      const tbody = document.getElementById("tbody");
+      thead.innerHTML = "<tr><th>Grup</th>" +
+        mets.map(m => `<th class="num">${m.label}</th>`).join("") +
+        "</tr>";
+
+      tbody.innerHTML = "";
+      data.rows.forEach(r => {
+        const tr = document.createElement("tr");
+        if (r.avg) tr.className = "avg-row";
+        tr.appendChild(Object.assign(document.createElement("td"), { className: "grp-label", textContent: r.label }));
+        mets.forEach(m => {
+          const td = document.createElement("td");
+          td.className = "num";
+          td.innerHTML = fmtMetricHtml(m, r.values[m.key]);
+          if (!r.avg && r.delta_abs) {
+            const abs = r.delta_abs[m.key];
+            const pct = r.delta_pct[m.key];
+            const d = document.createElement("span");
+            d.className = "dlt " + (abs === null || abs === undefined ? "zero" : (abs > 0 ? "up" : (abs < 0 ? "down" : "zero")));
+            if (abs === null || abs === undefined) {
+              d.textContent = "Δ -";
+            } else {
+              const arrow = abs > 0 ? "▲" : (abs < 0 ? "▼" : "=");
+              const pctTxt = (pct === null || pct === undefined) ? "" : " (" + (pct > 0 ? "+" : "") + fmt(pct) + "%)";
+              d.textContent = arrow + " Δ " + fmt(abs) + pctTxt;
+            }
+            td.appendChild(document.createElement("br"));
+            td.appendChild(d);
+          }
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      const chartRows = data.groups.map(g => ({
+        x: g.label || "Grup",
+        y: g.values[document.getElementById("chart-metric").value],
+      }));
+      document.getElementById("chart").innerHTML = "";
+      renderBIChart(document.getElementById("chart"), "bar", chartRows);
+      window.dispatchEvent(new Event("resize"));
+    }
+
+    let pdfBusy = false;
+    async function downloadPdf() {
+      const overlay = document.getElementById("pdf-load");
+      if (pdfBusy) return;
+      pdfBusy = true;
+      overlay.classList.add("show");
+      overlay.setAttribute("aria-hidden", "false");
+      try {
+        const res = await fetch("/api/compare/report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(collectPayload()),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || ("HTTP " + res.status));
+        }
+        const blob = await res.blob();
+        const m = /filename\*=UTF-8''([^;]+)/i.exec(res.headers.get("Content-Disposition") || "");
+        const name = m ? decodeURIComponent(m[1].trim()) : "perbandingan.pdf";
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = name;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      } catch (e) {
+        alert("Gagal mengunduh laporan: " + e.message);
+      } finally {
+        overlay.classList.remove("show");
+        overlay.setAttribute("aria-hidden", "true");
+        pdfBusy = false;
+      }
+    }
+
+    document.getElementById("btn-add").addEventListener("click", () => {
+      if (groupsData.length >= 10) return;
+      groupsData.push(newGroup());
+      renderGroups();
+      renderBaseSelect();
+    });
+    document.getElementById("btn-hitung").addEventListener("click", hitung);
+    document.getElementById("btn-pdf").addEventListener("click", e => { e.preventDefault(); downloadPdf(); });
+    document.getElementById("metric-list").addEventListener("change", renderChartMetric);
+
+    buildMetricList();
+    renderChartMetric();
+    groupsData = [newGroup(), newGroup()];
+    (async () => {
+      await Promise.all([loadSites(), loadRefs()]);
+      renderGroups();
+      renderBaseSelect();
+    })();
+  </script>
+</body>
+</html>

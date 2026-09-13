@@ -1,0 +1,70 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<style>
+  .panel { background: #fff; border: 1px solid #e2e6ea; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(15,42,61,0.06); margin-bottom: 16px; }
+  .panel h2 { font-size: 14px; font-weight: 700; color: #0f2a3d; margin-bottom: 6px; }
+  .panel p.hint { font-size: 12.5px; color: #5b6472; line-height: 1.6; margin-bottom: 14px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .field label { display: block; font-size: 11.5px; font-weight: 600; color: #5b6472; margin-bottom: 4px; }
+  .field input {
+    border: 1px solid #cfd6dd; border-radius: 7px; padding: 9px 11px;
+    font-size: 13px; width: 100%; background: #fff; color: #20242a;
+  }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #33414f; margin-top: 14px; }
+  .check input { accent-color: #0c5c72; width: 16px; height: 16px; }
+  .btn { background: #1985a0; color: #fff; border: none; border-radius: 8px; padding: 10px 26px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 16px; }
+  .btn:hover { background: #0c6d86; }
+  .cur { font-size: 12px; color: #8a94a3; }
+  .cur b { color: #0c5c72; }
+</style>
+
+<div class="panel">
+  <h2>1. Pengaturan Database CMMS</h2>
+  <p class="hint">
+    Data CMMS dibaca dari database <code style="background:#eef1f4; padding:1px 6px; border-radius:4px;">petroflexx_om</code>.
+    Centang <b>Aktifkan override</b> lalu isi koneksi lain bila dashboard harus membaca dari server database berbeda.
+    Kolom kosong memakai nilai bawaan (env).
+  </p>
+  <form method="post" action="{{ url_for('admin.server') }}">
+    <div class="form-grid">
+      <div class="field">
+        <label for="db_host">Host</label>
+        <input type="text" id="db_host" name="db_host" value="{{ settings.get('db_host', '') }}" placeholder="ikannya-baba-db">
+      </div>
+      <div class="field">
+        <label for="db_port">Port</label>
+        <input type="text" id="db_port" name="db_port" value="{{ settings.get('db_port', '') }}" placeholder="5432">
+      </div>
+      <div class="field">
+        <label for="db_name">Nama Database</label>
+        <input type="text" id="db_name" name="db_name" value="{{ settings.get('db_name', '') }}" placeholder="petroflexx_om">
+      </div>
+      <div class="field">
+        <label for="db_user">User</label>
+        <input type="text" id="db_user" name="db_user" value="{{ settings.get('db_user', '') }}" placeholder="bi_readonly">
+      </div>
+      <div class="field">
+        <label for="db_password">Password</label>
+        <input type="password" id="db_password" name="db_password" placeholder="{{ '••• tersimpan' if settings.get('db_password') else 'Password database' }}">
+      </div>
+    </div>
+    <label class="check">
+      <input type="checkbox" name="db_override_enabled" value="1"
+             {{ 'checked' if settings.get('db_override_enabled') == '1' }}>
+      Aktifkan override koneksi database
+    </label>
+    <button class="btn" type="submit">Simpan Pengaturan Database</button>
+  </form>
+</div>
+
+<div class="panel" style="border-left: 4px solid #e67e22;">
+  <h2>Status Saat Ini</h2>
+  <p class="cur">
+    {% if settings.get('db_override_enabled') == '1' and settings.get('db_host') %}
+      Override Aktif: {{ settings.get('db_host', '') }}:{{ settings.get('db_port', '') or '5432' }} / {{ settings.get('db_name', '') }} (user: {{ settings.get('db_user', '') }})
+    {% else %}
+      Menggunakan koneksi bawaan dari <b>.env</b>. Override dinonaktifkan.
+    {% endif %}
+  </p>
+</div>
+{% endblock %}

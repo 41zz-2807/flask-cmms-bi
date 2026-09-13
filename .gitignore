@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+prod.env
+
+# Data lokal / media (WO, dsb.)
+data/
+
+# Skrip & catatan berisi kredensial
+manage_users.sh
+NOTES.md
+
+# Logs & cache
+*.log
+logs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Artefak uji / laporan hasil generate
+*.pdf

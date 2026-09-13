@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Masuk - {{ title }}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: #0f2a3d;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .login-bg {
+    position: fixed;
+    inset: 0;
+    background: url("{{ url_for('static', filename='background.jpg') }}") center / cover no-repeat;
+    z-index: 0;
+  }
+  .login-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(12, 39, 59, 0.82), rgba(0, 120, 150, 0.72));
+  }
+  .login-card {
+    position: relative;
+    z-index: 1;
+    width: min(400px, 100%);
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 42px 40px 36px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    animation: fadeUp 0.45s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .login-logo {
+    width: 56px; height: 56px;
+    margin: 0 auto 18px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #0c5c72, #0fa3ad);
+    color: #fff; font-size: 26px; font-weight: 700;
+    box-shadow: 0 8px 20px rgba(12, 92, 114, 0.35);
+  }
+  .login-title {
+    text-align: center;
+    color: #0f2a3d;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+  .login-sub {
+    text-align: center;
+    color: #8492a6;
+    font-size: 14px;
+    margin: 8px 0 28px;
+  }
+  .field { margin-bottom: 20px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #3b4b5f;
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    border: 1.5px solid #dfe5ec;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 15px;
+    color: #0f2a3d;
+    background: #f7f9fb;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .field input:focus {
+    border-color: #0c5c72;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(12, 92, 114, 0.12);
+  }
+  .btn-login {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 13px;
+    margin-top: 4px;
+    background: linear-gradient(135deg, #0c5c72, #0fa3ad);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: transform 0.15s, box-shadow 0.2s, filter 0.2s;
+    box-shadow: 0 10px 22px rgba(12, 92, 114, 0.35);
+  }
+  .btn-login:hover { transform: translateY(-1px); filter: brightness(1.05); }
+  .btn-login:active { transform: translateY(0); }
+  .login-error {
+    background: #fdecea;
+    border: 1px solid #f5c6c0;
+    color: #a62a20;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+  .login-foot {
+    text-align: center;
+    margin-top: 26px;
+    font-size: 13px;
+    color: #8492a6;
+  }
+  .login-footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 18px;
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    z-index: 2;
+  }
+  .login-footer .license { font-weight: 600; color: rgba(255, 255, 255, 0.95); }
+  .login-footer .version { margin-left: 10px; }
+</style>
+</head>
+<body>
+  <div class="login-bg"></div>
+  <form class="login-card" method="post" action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}">
+    <div class="login-logo">BI</div>
+    <h1 class="login-title">Masuk Dashboard</h1>
+    <p class="login-sub">{{ title }}</p>
+
+    {% if error %}<div class="login-error">{{ error }}</div>{% endif %}
+
+    <input type="hidden" name="next" value="{{ next or '' }}">
+    <div class="field">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" autocomplete="username"
+             placeholder="Masukkan username" required autofocus>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password"
+             placeholder="Masukkan password" required>
+    </div>
+    <button type="submit" class="btn-login">Masuk</button>
+    <p class="login-foot">Petroflexx OM - Maintenance Analysis Dashboard</p>
+  </form>
+
+  <div class="login-footer">
+    <span class="license">{{ license_text }}</span>
+    <span class="version">{{ app_version }}</span>
+  </div>
+</body>
+</html>

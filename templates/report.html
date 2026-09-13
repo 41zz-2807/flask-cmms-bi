@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>{{ dashboard_title }} — Laporan {{ category_title }}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; overflow-x: hidden; }
+  body {
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    color: #20242a;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  @page { size: A4; margin: 11mm 9mm; }
+
+  .header {
+    background: linear-gradient(120deg, #0c5c72, #0fa3ad);
+    color: #fff;
+    border-radius: 10px;
+    height: 80px;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header .logo {
+    background: #fff;
+    border-radius: 8px;
+    padding: 7px 12px;
+    height: 52px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+  .header .logo img { height: 30px; width: auto; display: block; }
+  .header .company { font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+  .header .sub { font-size: 10.5px; color: #cfe8f0; margin-top: 2px; }
+  .header .title-wrap { flex: 1; min-width: 0; line-height: 1.4; }
+  .header .meta { font-size: 10px; color: #e2f3f8; line-height: 1.45; text-align: right; margin-left: auto; white-space: nowrap; }
+  .header .meta b { font-weight: 600; }
+
+  .report-title {
+    margin: 18px 0 4px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f2a3d;
+  }
+  .report-range {
+    font-size: 12px;
+    color: #5b6472;
+    margin-bottom: 14px;
+  }
+  .report-range b { color: #0c5c72; }
+
+  .kpi-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 6px 0 16px;
+  }
+  .kpi {
+    flex: 1 1 150px;
+    background: #fff;
+    border: 1px solid #e2e6ea;
+    border-left: 4px solid #0fa3ad;
+    border-radius: 9px;
+    padding: 9px 12px;
+  }
+  .kpi.accent { border-left-color: #e67e22; }
+  .kpi .n { font-size: 17px; font-weight: 700; color: #0f2a3d; }
+  .kpi .l { font-size: 10.5px; color: #5b6472; margin-top: 2px; line-height: 1.3; }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e2e6ea;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    break-inside: avoid;
+    overflow: hidden;
+  }
+  .card h2 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0c5c72;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #eef1f4;
+  }
+  #chart { width: 660px; height: 420px; max-width: 100%; }
+
+  .recs { list-style: none; }
+  .recs li {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px dashed #e2e6ea;
+    align-items: flex-start;
+  }
+  .recs li:last-child { border-bottom: none; }
+  .lvl {
+    flex: 0 0 64px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 3px 0;
+    margin-top: 1px;
+  }
+  .lvl.tinggi  { background: #c0392b1a; color: #c0392b; border: 1px solid #c0392b4d; }
+  .lvl.sedang  { background: #e67e221a; color: #e67e22; border: 1px solid #e67e224d; }
+  .lvl.info    { background: #0fa3ad1a; color: #0c5c72; border: 1px solid #0fa3ad4d; }
+  .recs .txt { flex: 1; font-size: 12.5px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11.5px; table-layout: auto; }
+  th, td { text-align: left; padding: 6px 7px; border-bottom: 1px solid #eef1f4; border-right: 1px solid #e8edf0; overflow-wrap: break-word; word-break: break-word; }
+  th:last-child, td:last-child { border-right: none; }
+  th { background: #0f6d82; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #f7fafb; }
+  td.amount, th.amount { text-align: right; }
+  td.amount .cur {
+    display: inline-block;
+    width: 22px;
+    text-align: left;
+    color: #5b6472;
+    font-weight: 600;
+  }
+  td.amount .amt {
+    display: inline-block;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    width: 70px;
+  }
+
+  .footer {
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e6ea;
+    font-size: 10.5px;
+    color: #8a94a3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+  }
+  .footer .center { font-weight: 500; color: #9aa6b2; opacity: 0.7; text-align: center; white-space: nowrap; }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    {% if logo_uri %}
+    <div class="logo"><img src="{{ logo_uri }}" alt="Logo Petroflexx"></div>
+    {% endif %}
+    <div class="title-wrap">
+      <div class="company">PT. PETROFLEXX PRIMA DAYA</div>
+      <div class="sub">{{ dashboard_title }}</div>
+    </div>
+    <div class="meta">
+      <div><b>Periode:</b> {{ from_date }} s/d {{ to_date }}</div>
+      <div><b>Oleh:</b> {{ generated_by }}</div>
+      <div>{{ generated_at }}</div>
+    </div>
+  </div>
+
+  <div class="report-title">{{ category_title }}</div>
+  <div class="report-range">Periode <b>{{ from_date }}</b> s/d <b>{{ to_date }}</b> &middot; Sumber: CMMS Petroflexx (semua site)</div>
+
+  {% if cards %}
+  <div class="kpi-strip">
+    {% for c in cards %}
+    <div class="kpi{{ ' accent' if c.get('accent') }}"{% if c.get('t') %} title="{{ c['t'] }}"{% endif %}>
+      <div class="n">{{ c.disp }}</div>
+      <div class="l">{{ c['l'] }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Ringkasan Analisis</h2>
+    <ul class="recs">
+      {% for r in recommendations %}
+      <li><span class="lvl {{ r.level }}">{{ { 'tinggi': 'UTAMA', 'sedang': 'PERHATIAN', 'info': 'INFO' }[r.level] }}</span>
+          <span class="txt">{{ r.text }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  {% if has_chart %}
+  <div class="card">
+    <h2>Grafik {{ category_title }}</h2>
+    <div id="chart"></div>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>Detail Data</h2>
+    <table id="tbl"><thead></thead><tbody></tbody></table>
+  </div>
+
+  <div class="footer">
+    <span class="center">{{ license_text }} &middot; {{ app_version }}</span>
+    <span>{{ category }} &middot; {{ generated_at }}</span>
+  </div>
+
+  <script>{{ echarts_js|safe }}</script>
+  <script>{{ chart_js|safe }}</script>
+  <script type="application/json" id="data-json">{{ chart_json|safe }}</script>
+  <script type="application/json" id="table-json">{{ table_json|safe }}</script>
+  <script>
+    (function () {
+      const LABELS = {
+        aset: "Aset", sparepart: "Sparepart", teknisi: "Teknisi", site: "Site",
+        bulan: "Bulan", total: "Total WO", sch: "SCH", req: "REQ", biaya: "Biaya (Rp)",
+        qty: "Qty", share: "Kontribusi (%)", cum: "Kumulatif (%)", klas: "Kelas",
+        wo_total: "Jumlah WO", mttr: "MTTR (hari)", mtbf: "MTBF (hari)",
+        no_wo: "No WO", tanggal: "Tanggal", status: "Status", tipe: "Tipe",
+        description: "Deskripsi", budget: "Budget (Rp)", jmlwo: "Jumlah WO",
+        kategori: "Kategori Isu", detail: "Detail", med_hari: "Median (hari)",
+        p95_hari: "P95 (hari)", backlog: "Backlog", wo_cl: "WO Closed",
+        last_date: "WO Terakhir", status_terakhir: "Status", site_name: "Site",
+        total_wo: "Total WO", sch_total: "WO SCH", req_total: "WO REQ",
+        pct_closed: "% Closed", pct_pm: "Kepatuhan PM", avg_budget: "Rata-rata (Rp)",
+        budget_closed: "Biaya Closed (Rp)", open: "Open", durasi: "Durasi",
+        total_qty: "Total Qty", tot_items: "Total Item", mom_total: "MoM %",
+        yoy_total: "YoY %", ma3_total: "MA-3", seasonal: "Musiman",
+      };
+      function fmt(v, key) {
+        if (v === null || v === undefined) return "-";
+        if (/tanggal|_date|last_date/.test(key)) {
+          const d = new Date(v);
+          return isNaN(d) ? v : d.toLocaleDateString("id-ID", { year: "numeric", month: "short", day: "2-digit" });
+        }
+        if (/(budget|biaya)/.test(key)) {
+          const n = Number(v).toLocaleString("id-ID", { maximumFractionDigits: 0 });
+          return '<span class="cur">Rp</span><span class="amt">' + n + "</span>";
+        }
+        if (key === "durasi") return Number(v).toLocaleString("id-ID", { maximumFractionDigits: 0 });
+        if (/pct_|share|cum|mom|yoy/.test(key)) return Number(v).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + "%";
+        if (/\bqty\b|wo_total|jmlwo|total/.test(key)) return Number(v).toLocaleString("id-ID", { maximumFractionDigits: 0 });
+        if (/mttr|mtbf|med_hari|p95_hari/.test(key)) return Number(v).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + " hari";
+        return String(v);
+      }
+      const chartEl = document.getElementById("chart");
+      if (chartEl) {
+        try {
+          const chartRows = JSON.parse(document.getElementById("data-json").textContent);
+          renderBIChart(chartEl, "{{ chart_type }}", chartRows);
+        } catch (e) { chartEl.textContent = "Gagal memuat grafik: " + e.message; }
+      }
+
+      const rows = JSON.parse(document.getElementById("table-json").textContent);
+      const thead = document.querySelector("#tbl thead");
+      const tbody = document.querySelector("#tbl tbody");
+      if (rows.length) {
+        const keys = Object.keys(rows[0]).filter(k => k !== "wo_id");
+        thead.innerHTML = "<tr>" + keys.map(k => `<th class="${/budget|biaya|qty|total|jmlwo|durab|backlog/.test(k) ? "amount" : ""}">${LABELS[k] || k}</th>`).join("") + "</tr>";
+        tbody.innerHTML = rows.map(r =>
+          "<tr>" + keys.map(k => `<td class="${/budget|biaya|qty|total|jmlwo|durasi|backlog|wo_total|wo_cl|med_hari|p95_hari|mttr|mtbf/.test(k) ? "amount" : ""}">${fmt(r[k], k)}</td>`).join("") + "</tr>"
+        ).join("");
+      } else {
+        tbody.innerHTML = '<tr><td style="color:#8a94a3">Tidak ada data.</td></tr>';
+      }
+      window.dispatchEvent(new Event("resize"));
+    })();
+  </script>
+</body>
+</html>

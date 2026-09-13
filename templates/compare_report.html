@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>{{ dashboard_title }} — Laporan Perbandingan</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; overflow-x: hidden; }
+  body {
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    color: #20242a;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+  @page { size: A4; margin: 11mm 9mm; }
+
+  .header {
+    background: linear-gradient(120deg, #0c5c72, #0fa3ad);
+    color: #fff;
+    border-radius: 10px;
+    height: 80px;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .header .logo {
+    background: #fff;
+    border-radius: 8px;
+    padding: 7px 12px;
+    height: 52px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+  }
+  .header .logo img { height: 30px; width: auto; display: block; }
+  .header .company { font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+  .header .sub { font-size: 10.5px; color: #cfe8f0; margin-top: 2px; }
+  .header .title-wrap { flex: 1; min-width: 0; line-height: 1.4; }
+  .header .meta { font-size: 10px; color: #e2f3f8; line-height: 1.45; text-align: right; margin-left: auto; white-space: nowrap; }
+  .header .meta b { font-weight: 600; }
+
+  .report-title { margin: 18px 0 4px; font-size: 17px; font-weight: 700; color: #0f2a3d; }
+  .report-range { font-size: 12px; color: #5b6472; margin-bottom: 8px; }
+  .report-range b { color: #0c5c72; }
+
+  .groups-overview { margin-bottom: 14px; }
+  .group-meta {
+    background: #f7fafb;
+    border: 1px solid #e2e6ea;
+    border-left: 4px solid #0fa3ad;
+    border-radius: 8px;
+    padding: 7px 11px;
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: #33414f;
+  }
+  .group-meta b { color: #0c5c72; }
+
+  .card {
+    background: #fff;
+    border: 1px solid #e2e6ea;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    break-inside: avoid;
+    overflow: hidden;
+  }
+  .card h2 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0c5c72;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #eef1f4;
+  }
+  #chart { width: 660px; height: 420px; max-width: 100%; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: auto; }
+  th, td {
+    text-align: left; padding: 6px 7px;
+    border-bottom: 1px solid #eef1f4; border-right: 1px solid #e8edf0;
+    overflow-wrap: break-word; word-break: break-word;
+  }
+  th:last-child, td:last-child { border-right: none; }
+  th { background: #0f6d82; color: #fff; font-weight: 600; }
+  tr:nth-child(even) td { background: #f7fafb; }
+  td.label-cell { font-weight: 600; color: #0f2a3d; white-space: nowrap; }
+  tr.avg-row td { background: #eef6f8; font-weight: 600; }
+  td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td.num .cur { display: inline-block; width: 20px; text-align: left; color: #5b6472; font-weight: 600; }
+  td.num .amt { display: inline-block; text-align: right; font-variant-numeric: tabular-nums; }
+  .dlt { display: block; font-size: 10px; }
+  .dlt.up { color: #27ae60; }
+  .dlt.down { color: #c0392b; }
+  .dlt.zero { color: #8a94a3; }
+
+  .footer {
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid #e2e6ea;
+    font-size: 10.5px;
+    color: #8a94a3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+  }
+  .footer .center { font-weight: 500; color: #9aa6b2; opacity: 0.7; text-align: center; }
+</style>
+</head>
+<body>
+
+  <div class="header">
+    {% if logo_uri %}
+    <div class="logo"><img src="{{ logo_uri }}" alt="Logo Petroflexx"></div>
+    {% endif %}
+    <div class="title-wrap">
+      <div class="company">PT. PETROFLEXX PRIMA DAYA</div>
+      <div class="sub">{{ dashboard_title }}</div>
+    </div>
+    <div class="meta">
+      <div><b>Oleh:</b> {{ generated_by }}</div>
+      <div>{{ generated_at }}</div>
+    </div>
+  </div>
+
+  <div class="report-title">{{ title }}</div>
+  <div class="report-range">Sumber: CMMS Petroflexx</div>
+
+  <div class="groups-overview" id="groups-overview"></div>
+
+  <div class="card">
+    <h2>Grafik — {{ metrics[0].label if metrics else '' }}</h2>
+    <div id="chart"></div>
+  </div>
+
+  <div class="card">
+    <h2>Tabel Perbandingan (delta terhadap: {{ base_label }})</h2>
+    <table id="tbl"><thead></thead><tbody></tbody></table>
+  </div>
+
+  <div class="footer">
+    <span class="center">{{ license_text }} &middot; {{ app_version }}</span>
+    <span>Perbandingan Dinamis &middot; {{ generated_at }}</span>
+  </div>
+
+  <script>{{ echarts_js|safe }}</script>
+  <script>{{ chart_js|safe }}</script>
+  <script type="application/json" id="rows-json">{{ rows_json|safe }}</script>
+  <script type="application/json" id="groups-json">{{ groups_json|safe }}</script>
+  <script>
+    (function () {
+      const METRICS = {{ metrics|tojson }};
+      const ROWS = JSON.parse(document.getElementById("rows-json").textContent);
+      const GROUPS = JSON.parse(document.getElementById("groups-json").textContent);
+      const M = METRICS[0] || { key: "total_wo", label: "Total WO", kind: "int" };
+
+      const go = document.getElementById("groups-overview");
+      if (go && GROUPS.length) {
+        go.innerHTML = GROUPS.map((g, i) =>
+          '<div class="group-meta"><b>Grup ' + (i + 1) + ':</b> ' +
+          (g.label || ("Grup " + (i + 1))) + " &middot; " +
+          g.from + " s/d " + g.to + " &middot; " +
+          (g.sites && g.sites.length ? "site terpilih" : "semua site") + " &middot; " +
+          "Tipe: " + (g.tipe || "Semua") +
+          (g.aset ? " &middot; Aset: " + g.aset : "") +
+          (g.teknisi ? " &middot; Teknisi: " + g.teknisi : "") +
+          "</div>"
+        ).join("");
+      }
+
+      function fmt(v) {
+        return Number(v).toLocaleString("id-ID", { maximumFractionDigits: 0 });
+      }
+      function fmtMoney(v) {
+        if (v === null || v === undefined) return "-";
+        return '<span class="cur">Rp</span><span class="amt">' + fmt(v) + "</span>";
+      }
+      function fmtMetric(m, v) {
+        if (v === null || v === undefined) return "-";
+        if (m.kind === "money") return fmtMoney(v);
+        if (m.kind === "pct") return fmt(v) + "%";
+        return fmt(v);
+      }
+
+      const chartEl = document.getElementById("chart");
+      if (chartEl) {
+        const rows = ROWS.filter(r => !r.avg).map(r => ({ x: r.label || "Grup", y: r.values[M.key] }));
+        renderBIChart(chartEl, "bar", rows);
+      }
+
+      const thead = document.querySelector("#tbl thead");
+      const tbody = document.querySelector("#tbl tbody");
+      thead.innerHTML = "<tr><th>Grup</th>" +
+        METRICS.map(m => `<th class="num">${m.label}</th>`).join("") +
+        "</tr>";
+      tbody.innerHTML = ROWS.map(r => {
+        const cells = METRICS.map(m => {
+          let c = `<td class="num">${fmtMetric(m, r.values[m.key])}`;
+          if (!r.avg && r.delta_abs) {
+            const abs = r.delta_abs[m.key];
+            const pct = r.delta_pct[m.key];
+            if (abs !== null && abs !== undefined) {
+              const cls = abs > 0 ? "up" : (abs < 0 ? "down" : "zero");
+              const arr = abs > 0 ? "▲" : (abs < 0 ? "▼" : "=");
+              const pt = (pct === null || pct === undefined) ? "" : " (" + (pct > 0 ? "+" : "") + fmt(pct) + "%)";
+              c += `<span class="dlt ${cls}">${arr} ${fmt(abs)}${pt} </span>`;
+            }
+          }
+          c += "</td>";
+          return c;
+        }).join("");
+        return `<tr${r.avg ? ' class="avg-row"' : ""}><td class="label-cell">${r.label}</td>${cells}</tr>`;
+      }).join("");
+      window.dispatchEvent(new Event("resize"));
+    })();
+  </script>
+</body>
+</html>

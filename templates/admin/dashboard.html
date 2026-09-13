@@ -1,0 +1,65 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<style>
+  .stats { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+  .stat {
+    flex: 1 1 180px;
+    background: #fff;
+    border: 1px solid #e2e6ea;
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(15,42,61,0.06);
+  }
+  .stat .num { font-size: 26px; font-weight: 700; color: #0c5c72; }
+  .stat .lbl { font-size: 12px; color: #5b6472; margin-top: 2px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+  .card {
+    background: #fff;
+    border: 1px solid #e2e6ea;
+    border-top: 4px solid #0fa3ad;
+    border-radius: 10px;
+    padding: 18px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 3px rgba(15,42,61,0.06);
+    transition: transform 0.05s ease, box-shadow 0.15s ease;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(15,42,61,0.12); }
+  .card h3 { font-size: 14px; font-weight: 700; color: #0f2a3d; margin-bottom: 6px; }
+  .card p { font-size: 12.5px; color: #5b6472; line-height: 1.5; }
+  .card .go { font-size: 12px; font-weight: 700; color: #0c5c72; margin-top: 10px; display: block; }
+  .c2 { border-top-color: #8e44ad; }
+  .c3 { border-top-color: #e67e22; }
+  .c4 { border-top-color: #1985a0; }
+</style>
+
+<div class="stats">
+  <div class="stat"><div class="num">{{ n_users }}</div><div class="lbl">Total Pengguna</div></div>
+  <div class="stat"><div class="num">{{ n_active }}</div><div class="lbl">Akun Aktif</div></div>
+  <div class="stat"><div class="num">{{ n_visible }}</div><div class="lbl">Hak Akses Kategori (non-superadmin)</div></div>
+  <div class="stat"><div class="num">{{ categories|length }}</div><div class="lbl">Kategori Dashboard Tersedia</div></div>
+</div>
+
+<div class="grid">
+  <a class="card" href="{{ url_for('admin.server') }}">
+    <h3>1. Pengaturan Database CMMS</h3>
+    <p>Melihat dan mengubah koneksi database data CMMS yang dipakai dashboard (host, port, nama, user, password). Mengaktifkan override akan memakai pengaturan ini untuk seluruh query data.</p>
+    <span class="go">Atur Sekarang &rarr;</span>
+  </a>
+  <a class="card c2" href="{{ url_for('admin.users') }}">
+    <h3>2. Kelola Pengguna</h3>
+    <p>Menambahkan user baru, melihat daftar user, mereset password, mengubah role (user/superadmin) dan mengaktifkan/menonaktifkan akun.</p>
+    <span class="go">Kelola Pengguna &rarr;</span>
+  </a>
+  <a class="card c3" href="{{ url_for('admin.smtp') }}">
+    <h3>3. Konfigurasi Email (SMTP)</h3>
+    <p>Mengatur server SMTP outgoing: host, port, autentikasi user, pengirim (from) dan keamanan TLS.</p>
+    <span class="go">Atur Email &rarr;</span>
+  </a>
+  <a class="card c4" href="{{ url_for('admin.access') }}">
+    <h3>4. Visibilitas Dashboard per User</h3>
+    <p>Menampilkan atau menyembunyikan halaman dashboard detail (per kategori laporan) untuk setiap user. User tanpa hak hanya melihat dashboard kosong.</p>
+    <span class="go">Atur Visibilitas &rarr;</span>
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Inter", Helvetica, Arial, sans-serif;
+      color: #20242a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: url("{{ url_for('static', filename='background.jpg') }}") center / cover no-repeat;
+      z-index: 0;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(12, 39, 59, 0.82), rgba(0, 120, 150, 0.72));
+      z-index: 0;
+    }
+    .header, .summary-bar, .grid, .folder-card, .loading, .error {
+      position: relative;
+      z-index: 1;
+    }
+    .summary-bar { z-index: 10; }
+    .msite-pop { z-index: 20; }
+    .header {
+      background: linear-gradient(135deg, #0c5c72, #0fa3ad);
+      color: #fff;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header h1 { font-size: 18px; font-weight: 600; white-space: nowrap; }
+    .header .sub { font-size: 12px; color: #9fc4d8; }
+    .header .user-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+    }
+    .header .user-name {
+      font-size: 13px;
+      color: #d7e7f1;
+      white-space: nowrap;
+    }
+    .btn-logout {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 7px;
+      padding: 5px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.22); }
+    .btn-compare {
+      background: rgba(255,255,255,0.14);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 7px;
+      padding: 5px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-compare:hover { background: #fff; color: #0c5c72; border-color: #fff; }
+    .btn-admin {
+      background: rgba(142,68,173,0.35);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 7px;
+      padding: 5px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-admin:hover { background: #8e44ad; border-color: #8e44ad; }
+    .no-access {
+      position: relative;
+      z-index: 1;
+      max-width: 620px;
+      margin: 40px auto;
+      background: #fff;
+      border: 1px solid #e2e6ea;
+      border-left: 4px solid #e67e22;
+      border-radius: 10px;
+      padding: 24px 26px;
+      text-align: center;
+      color: #33414f;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .no-access b { color: #0c5c72; }
+    .app-footer {
+      margin-top: auto;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 14px 16px 22px;
+      color: #9fc4d8;
+      font-size: 12px;
+    }
+    .app-footer .license { color: #e3f0f6; font-weight: 600; }
+    .app-footer .version { margin-left: 10px; }
+    .logo-reset {
+      height: 36px;
+      width: auto;
+      border-radius: 10px;
+      cursor: pointer;
+      display: block;
+      object-fit: contain;
+    }
+    .logo-reset:hover { opacity: 0.85; }
+
+    .summary-bar {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 12px 20px;
+      background: #fff;
+      border-bottom: 2px solid #0fa3ad;
+    }
+    .summary-bar .label { font-size: 12px; font-weight: 600; color: #5b6472; white-space: nowrap; }
+    .fgroup {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .fgroup label { font-size: 12px; font-weight: 600; color: #5b6472; }
+    .fgroup input[type="date"] {
+      border: 1px solid #cfd6dd;
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-size: 12.5px;
+      color: #20242a;
+      background: #fff;
+    }
+    .msite {
+      position: relative;
+    }
+    .msite-btn {
+      border: 1px solid #cfd6dd;
+      border-radius: 7px;
+      background: #fff;
+      color: #20242a;
+      padding: 6px 10px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+    .msite-btn:hover { border-color: #9fc4d8; }
+    .msite-pop {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 9999;
+      min-width: 230px;
+      max-height: 260px;
+      overflow-y: auto;
+      background: #fff;
+      border: 1px solid #cfd6dd;
+      border-radius: 9px;
+      box-shadow: 0 12px 28px rgba(15,42,61,0.18);
+      padding: 6px;
+    }
+    .msite-pop.open { display: block; }
+    .msite-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .msite-item:hover { background: #f4f8fa; }
+    .msite-item input { accent-color: #0c5c72; width: 15px; height: 15px; cursor: pointer; }
+    .msite-item .site-name { flex: 1; font-size: 12.5px; }
+    .msite-item .site-count { font-size: 11px; color: #8a94a3; background: #eef1f4; border-radius: 999px; padding: 2px 8px; }
+
+    .summary-bar .right { margin-left: auto; font-size: 12px; color: #8a94a3; white-space: nowrap; }
+    .summary-bar { z-index: 100; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      padding: 18px;
+    }
+    @media (max-width: 1200px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .folder-card {
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid #e2e6ea;
+      box-shadow: 0 1px 3px rgba(15,42,61,0.06);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 14px 12px 12px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .folder-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 26px rgba(15,42,61,0.16);
+      border-color: #c9e3ea;
+    }
+    .folder-card .folder-icon {
+      width: 62px;
+      height: 62px;
+      display: block;
+    }
+    .folder-card .folder-title {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #0f2a3d;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .folder-card .folder-go {
+      margin-top: 4px;
+      font-size: 10px;
+      color: #4aa3bb;
+      font-weight: 500;
+    }
+    .loading, .error {
+      padding: 60px 20px;
+      text-align: center;
+      color: #8a94a3;
+      font-size: 14px;
+    }
+    .error { color: #c0392b; }
+
+    .section {
+      position: relative;
+      z-index: 1;
+      padding: 16px 18px 0;
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #fff;
+      background: transparent;
+      border-left: 3px solid #0fa3ad;
+      padding: 7px 12px;
+      border-radius: 7px;
+      margin-bottom: 10px;
+    }
+    .grid { margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img class="logo-reset" id="btn-burger" src="https://petroflexx.co.id/wp-content/uploads/2020/07/cropped-Logo-Petroflexx.png" alt="Reset filter" title="Klik untuk reset semua filter">
+    <h1>{{ title }}</h1>
+    <div class="sub">PT. PETROFLEXX PRIMA DAYA &middot; Operations &amp; Maintenance</div>
+    <div class="user-box">
+      <span class="user-name">{{ current_full_name }}</span>
+      {% if is_admin %}<a class="btn-admin" href="{{ url_for('admin.dashboard') }}" title="Panel Administrasi">Administrasi</a>{% endif %}
+      {% if can_compare %}<a class="btn-compare" href="/compare" title="Bandingkan kinerja antar periode &amp; site">Bandingkan</a>{% endif %}
+      <a class="btn-logout" href="{{ url_for('logout') }}">Keluar</a>
+    </div>
+  </div>
+
+  <div class="summary-bar">
+    <span class="label">Filter:</span>
+    <div class="fgroup">
+      <label for="from">Dari</label>
+      <input type="date" id="from" value="{{ today }}">
+      <label for="to">s/d</label>
+      <input type="date" id="to" value="{{ today }}">
+    </div>
+    <div class="msite" id="msite-wrap">
+      <button class="msite-btn" id="msite-btn" type="button">
+        <span id="msite-label">Semua Site</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#5b6472" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="msite-pop" id="msite-pop"></div>
+    </div>
+    <span class="right" id="lbl-updated"></span>
+  </div>
+
+  <div class="grid">
+    {% if can_compare %}
+    <a class="folder-card" href="/compare" title="Bandingkan kinerja antar periode &amp; site">
+      <svg class="folder-icon" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="fold-compare" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8e44ad"/>
+            <stop offset="0.55" stop-color="#8e44ad" stop-opacity="0.82"/>
+            <stop offset="1" stop-color="#8e44ad" stop-opacity="0.62"/>
+          </linearGradient>
+        </defs>
+        <path d="M54 260 C44 260 38 254 38 244 L38 96 C38 86 44 80 54 80 L120 80 L138 100 L246 100 C256 100 262 106 262 116 L262 244 C262 254 256 260 246 260 Z" fill="url(#fold-compare)"/>
+        <path d="M54 80 L120 80 L138 100 L246 100 L246 104 L38 104 L38 96 C38 86 44 80 54 80 Z" fill="#ffffff" opacity="0.25"/>
+        <circle cx="150" cy="170" r="46" fill="#ffffff" opacity="0.12"/>
+      </svg>
+      <div class="folder-title">Perbandingan Dinamis</div>
+      <div class="folder-go">Buka &rarr;</div>
+    </a>
+    {% endif %}
+  </div>
+
+  {% if hidden_cards %}
+  <div class="no-access">
+    Anda belum diberi akses ke dashboard detail mana pun.<br>
+    Hubungi <b>administrator</b> untuk mengatur visibilitas dashboard pada akun Anda.
+  </div>
+  {% endif %}
+
+  {% for group in groups %}
+    <div class="section">
+      <div class="section-title">{{ group.title }}</div>
+    </div>
+    <div class="grid">
+    {% for c in group.cards %}
+      <a class="folder-card" href="#" data-key="{{ c.key }}" title="Buka detail: {{ c.title }}">
+        <svg class="folder-icon" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <linearGradient id="fold-{{ c.key }}" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="{{ c.color }}"/>
+              <stop offset="0.55" stop-color="{{ c.color }}" stop-opacity="0.82"/>
+              <stop offset="1" stop-color="{{ c.color }}" stop-opacity="0.62"/>
+            </linearGradient>
+          </defs>
+          <path d="M54 260 C44 260 38 254 38 244 L38 96 C38 86 44 80 54 80 L120 80 L138 100 L246 100 C256 100 262 106 262 116 L262 244 C262 254 256 260 246 260 Z" fill="url(#fold-{{ c.key }})"/>
+          <path d="M54 80 L120 80 L138 100 L246 100 L246 104 L38 104 L38 96 C38 86 44 80 54 80 Z" fill="#ffffff" opacity="0.25"/>
+          <circle cx="150" cy="170" r="46" fill="#ffffff" opacity="0.12"/>
+        </svg>
+        <div class="folder-title">{{ c.title }}</div>
+        <div class="folder-go">Lihat Detail &rarr;</div>
+      </a>
+      {% endfor %}
+    </div>
+  {% endfor %}
+
+  <script>
+    const selectedSites = new Set();
+    const sitesCache = [];
+    const STORE_KEY = "biDashboardFilters";
+
+    function saveState() {
+      sessionStorage.setItem(STORE_KEY, JSON.stringify({
+        from: document.getElementById("from").value,
+        to: document.getElementById("to").value,
+        sites: Array.from(selectedSites),
+      }));
+    }
+
+    function restoreState() {
+      try {
+        const raw = sessionStorage.getItem(STORE_KEY);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        if (s.from) document.getElementById("from").value = s.from;
+        if (s.to) document.getElementById("to").value = s.to;
+        if (Array.isArray(s.sites)) s.sites.forEach(id => selectedSites.add(String(id)));
+      } catch (e) { /* ignore */ }
+    }
+
+    function fmt(value) {
+      return Number(value).toLocaleString("id-ID", { maximumFractionDigits: 0 });
+    }
+
+    async function loadSites() {
+      const pop = document.getElementById("msite-pop");
+      const btn = document.getElementById("msite-btn");
+      const label = document.getElementById("msite-label");
+      try {
+        const res = await fetch("/api/sites");
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const { sites } = await res.json();
+        sitesCache.length = 0;
+        sitesCache.push(...sites);
+        pop.innerHTML = "";
+        sites.forEach(s => {
+          const row = document.createElement("label");
+          row.className = "msite-item";
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.value = String(s.site_id);
+          cb.addEventListener("change", () => {
+            if (cb.checked) selectedSites.add(cb.value);
+            else selectedSites.delete(cb.value);
+            syncMsiteLabel();
+            saveState();
+          });
+          const n = document.createElement("span");
+          n.className = "site-name";
+          n.textContent = s.site_name;
+          const c = document.createElement("span");
+          c.className = "site-count";
+          c.textContent = fmt(s.total_wo);
+          row.append(cb, n, c);
+          pop.appendChild(row);
+        });
+        restoreState();
+        document.querySelectorAll("#msite-pop input").forEach(cb => { cb.checked = selectedSites.has(cb.value); });
+        syncMsiteLabel();
+      } catch (e) {
+        pop.innerHTML = '<div style="padding:10px;font-size:12px;color:#c0392b">Gagal memuat site</div>';
+      }
+      btn.addEventListener("click", e => { e.stopPropagation(); pop.classList.toggle("open"); });
+      document.addEventListener("click", e => { if (!e.target.closest("#msite-wrap")) pop.classList.remove("open"); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") pop.classList.remove("open"); });
+    }
+
+    function syncMsiteLabel() {
+      const el = document.getElementById("msite-label");
+      if (selectedSites.size === 0) {
+        el.textContent = "Semua Site";
+      } else {
+        const names = sitesCache.filter(s => selectedSites.has(String(s.site_id))).map(s => s.site_name);
+        el.textContent = names.length <= 2 ? names.join(", ") : names.length + " site dipilih";
+      }
+    }
+
+    function getDetailUrl(key) {
+      const from = document.getElementById("from").value;
+      const to = document.getElementById("to").value;
+      let url = `/detail/${key}?from=${from}&to=${to}`;
+      if (selectedSites.size > 0) url += "&sites=" + Array.from(selectedSites).join(",");
+      return url;
+    }
+
+    document.addEventListener("click", e => {
+      const a = e.target.closest(".folder-card");
+      if (a && a.dataset.key) {
+        e.preventDefault();
+        saveState();
+        window.location.href = getDetailUrl(a.dataset.key);
+      }
+    });
+
+    document.getElementById("btn-burger").addEventListener("click", () => {
+      document.querySelectorAll("#msite-pop input").forEach(cb => { cb.checked = false; });
+      selectedSites.clear();
+      syncMsiteLabel();
+      document.getElementById("from").value = new Date(Date.now() - 30 * 864e5).toISOString().split("T")[0];
+      document.getElementById("to").value = new Date().toISOString().split("T")[0];
+      saveState();
+    });
+
+    ["from", "to"].forEach(id => {
+      document.getElementById(id).addEventListener("change", saveState);
+    });
+
+    loadSites();
+    document.getElementById("from").value = new Date(Date.now() - 30 * 864e5).toISOString().split("T")[0];
+    document.getElementById("to").value = new Date().toISOString().split("T")[0];
+  </script>
+
+  <div class="app-footer">
+    <span class="license">{{ license_text }}</span>
+    <span class="version">{{ app_version }}</span>
+  </div>
+</body>
+</html>

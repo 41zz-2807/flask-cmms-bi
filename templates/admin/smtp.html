@@ -1,0 +1,105 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<style>
+  .panel { background: #fff; border: 1px solid #e2e6ea; border-radius: 10px; padding: 16px 18px; box-shadow: 0 1px 3px rgba(15,42,61,0.06); }
+  .panel h2 { font-size: 14px; font-weight: 700; color: #0f2a3d; margin-bottom: 6px; }
+  .panel p.hint { font-size: 12.5px; color: #5b6472; line-height: 1.6; margin-bottom: 14px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+  .field label { display: block; font-size: 11.5px; font-weight: 600; color: #5b6472; margin-bottom: 4px; }
+  .field input {
+    border: 1px solid #cfd6dd; border-radius: 7px; padding: 9px 11px;
+    font-size: 13px; width: 100%; background: #fff; color: #20242a;
+  }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #33414f; margin-top: 14px; }
+  .check input { accent-color: #0c5c72; width: 16px; height: 16px; }
+  .btn { background: #1985a0; color: #fff; border: none; border-radius: 8px; padding: 10px 26px; font-size: 13px; font-weight: 700; cursor: pointer; margin-top: 16px; }
+  .btn:hover { background: #0c6d86; }
+  .btn.test { background: #27ae60; margin-top: 0; padding: 10px 22px; }
+  .btn.test:hover { background: #1e964f; }
+  .test-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .test-row .field { flex: 1; min-width: 260px; margin: 0; }
+  .test-note { font-size: 12px; color: #8a94a3; margin-top: 10px; }
+  .cur { font-size: 12.5px; color: #5b6472; line-height: 1.7; margin-top: 6px; }
+  .cur b { color: #0c5c72; }
+</style>
+
+<div class="panel">
+  <h2>3. Konfigurasi Email (SMTP)</h2>
+  <p class="hint">
+    Setting server SMTP untuk pengiriman email (notifikasi). Password tersimpan aman dan tidak ditampilkan;
+    kosongkan kolom password bila tidak ingin mengubahnya.
+  </p>
+  <form method="post" action="{{ url_for('admin.smtp') }}">
+    <div class="form-grid">
+      <div class="field">
+        <label for="smtp_host">SMTP Host *</label>
+        <input type="text" id="smtp_host" name="smtp_host" required value="{{ settings.get('smtp_host', '') }}" placeholder="smtp.gmail.com">
+      </div>
+      <div class="field">
+        <label for="smtp_port">SMTP Port *</label>
+        <input type="text" id="smtp_port" name="smtp_port" required value="{{ settings.get('smtp_port', '587') }}" placeholder="587">
+      </div>
+      <div class="field">
+        <label for="smtp_username">Username *</label>
+        <input type="text" id="smtp_username" name="smtp_username" required autocomplete="off" value="{{ settings.get('smtp_username', '') }}" placeholder="contoh@domain.com">
+      </div>
+      <div class="field">
+        <label for="smtp_password">Password</label>
+        <input type="password" id="smtp_password" name="smtp_password" autocomplete="new-password" placeholder="{{ '••• tersimpan' if settings.get('smtp_password') else 'Password SMTP' }}">
+      </div>
+      <div class="field">
+        <label for="smtp_from">Pengirim (From) *</label>
+        <input type="email" id="smtp_from" name="smtp_from" required value="{{ settings.get('smtp_from', '') }}" placeholder="no-reply@domain.com">
+      </div>
+    </div>
+    <label class="check">
+      <input type="checkbox" name="smtp_use_tls" value="1" {{ 'checked' if settings.get('smtp_use_tls') == '1' }}>
+      Gunakan TLS / SSL
+    </label>
+    <label class="check">
+      <input type="checkbox" name="smtp_enabled" value="1" {{ 'checked' if settings.get('smtp_enabled') == '1' }}>
+      Aktifkan pengiriman email
+    </label>
+    <button class="btn" type="submit">Simpan Pengaturan SMTP</button>
+  </form>
+</div>
+
+<div class="panel" style="margin-top:16px; border-left: 4px solid #27ae60;">
+  <h2>Uji Pengiriman Email</h2>
+  <p class="hint">
+    Kirim email test untuk memastikan konfigurasi SMTP di atas berfungsi. Uji kirim memakai
+    <b>pengaturan yang tersimpan</b> (bukan form di atas).
+  </p>
+  <form method="post" action="{{ url_for('admin.smtp_test') }}">
+    <div class="test-row">
+      <div class="field">
+        <label for="to_email">Kirim test ke *</label>
+        <input type="email" id="to_email" name="to_email" required placeholder="email@penerima.com">
+      </div>
+      <button class="btn test" type="submit">Kirim Test Email</button>
+    </div>
+    <p class="test-note">
+      {% if settings.get('smtp_host') %}
+        Akan dikirim lewat <b>{{ settings.get('smtp_host') }}:{{ settings.get('smtp_port') }}</b>
+        atas nama <b>{{ settings.get('smtp_from') }}</b>.
+      {% else %}
+        Simpan pengaturan SMTP di atas terlebih dahulu sebelum uji kirim.
+      {% endif %}
+    </p>
+  </form>
+</div>
+
+<div class="panel" style="margin-top:16px; border-left: 4px solid #e67e22;">
+  <h2>Konfigurasi Tersimpan</h2>
+  <p class="cur">
+    {% if settings.get('smtp_host') %}
+      Host: <b>{{ settings.get('smtp_host', '') }}</b> &middot; Port: <b>{{ settings.get('smtp_port', '') }}</b> &middot;
+      User: <b>{{ settings.get('smtp_username', '') }}</b> &middot; From: <b>{{ settings.get('smtp_from', '') }}</b> &middot;
+      TLS: <b>{{ 'Ya' if settings.get('smtp_use_tls') == '1' else 'Tidak' }}</b> &middot;
+      Aktif: <b>{{ 'Ya' if settings.get('smtp_enabled') == '1' else 'Tidak' }}</b>
+    {% else %}
+      Belum ada konfigurasi SMTP. Simpan untuk pertama kali di atas.
+    {% endif %}
+  </p>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+# AGENTS.md — Flask BI CMMS Petroflexx
+
+## Project
+Dashboard BI Flask untuk database `petroflexx_om` (CMMS Petroflexx OM). Aplikasi berjalan di container Docker (`flask-cmms-bi`), DB di container lain (`ikannya-baba-db`, postgres:15).
+
+Path: `/home/bilal/projects/flask_cmms_bi`
+
+## Stack & File
+- `app.py` — semua route + logika agregasi (pandas). ~1080 baris.
+- `queries.py` — QUERIES (konfigurasi + SQL), TABLE_SQL, SUMMARY_SQL, SQL mentah (RAW_SQL).
+- `auth.py`, `db.py` — login (PBKDF2, admin/SuperAdmin1) dan koneksi DB. `admin.py` — blueprint panel administrasi (superadmin).
+- `Dockerfile` COPY: `app.py db.py queries.py auth.py admin.py` (jangan lupa file baru!).
+- `db.py` WAJIB `options="-c search_path=petroflexx_om"` — tanpa ini query gagal. Koneksi DATA (`admin=False`) SELALU dipaksa `default_transaction_read_only=on` → data CMMS tak pernah di-UPDATE (terverifikasi: UPDATE → ReadOnlySqlTransaction).
+- `templates/` — `dashboard.html`, `detail.html`, `report.html` (template laporan PDF), `login.html`.
+- `static/` — `chart.js` (renderer grafik bersama `window.renderBIChart(el, type, rows)`), `echarts.min.js` (lokal), `logo-petroflexx.png`, `background.jpg`.
+- `Dockerfile`, `docker-compose.yml`, `requirements.txt` — gunicorn 2 workers/4 threads; playwright + chromium TERINSTALL di image.
+- `.env` — kredensial DB (RAHASIA, file gitignored — lihat `manage_users.sh`/`NOTES.md` untuk acuan user), `DASHBOARD_TITLE=Aplikasi CMMS - Petroflexx OM`, `MEDIA_ROOT=/opt/tomcat/media`, `MEDIA_WO_PATH=.../WO`, `SECRET_KEY`.
+
+## Perintah
+- Rebuild + start: `docker compose up -d --build` (±95 detik).
+- Login test: `curl -s -c /tmp/cj.txt -b /tmp/cj.txt -d "username=superadmin&password=$SUPERADMIN_PASSWORD" http://localhost:8090/login` (302 = ok; nilai password superadmin & DB dari `prod.env`/`.env` yang GITIGNORED — jangan tulis kredensial asli di file ter-commit). Aplikasi di `http://localhost:8090` (PORT=8090 di `.env` & default compose, SAMA dengan port produksi; gunicorn internal tetap 8088).
+- PSQL cepat ke DB: `docker exec ikannya-baba-db psql -U petroflexx_om -d petroflexx_om -t -c "SQL"`.
+
+## Struktur data (relevan)
+- `om_wo`: WO utama. Kolom penting: `om_wo_id`, `value` (no WO), `description`, `doc_status` (CL/CO/RE/IP), `type` (`SCH`/`REQ`), `created_date`, `closed_date`, `budget`, `asset_id`, `m_org_id`, `classification`.
+- `m_org`: site (`m_org_id`, `name`) — contoh: "BCP - SENG", "SSDS & SSGP", "GHSF", "HO".
+- `om_product`: aset (`om_product_id`, `name`). **Aset punya spasi ganda di nama** (mis. "02-0. DIESEL ENGINE DE-701").
+- `om_wo_item` / `om_product`: pemakaian sparepart (qty) via `om_wo_item.om_product_id`.
+- `m_global_param`: klasifikasi WO (`parent_condition='CLASSIFICATION_WO'`, `condition`, `label`).
+- `om_wo_appr` + `om_wo_appr_history`: approval/workflow. `last_approval IN (3,4)` = aktivitas teknisi; `last_approved` = user; `last_status 'CL'` = penutupan. Teknisi di-assign via history ini (bukan kolom di om_wo).
+- `m_user`: user (nama teknisi).
+
+## Kategori laporan (QUERIES key)
+`asset_wo_frequency` (Aset paling sering meminta WO), `pm_compliance` (kepatuhan PM/SCH), `sparepart_fast_moving`, `technician_performance` (kinerja teknisi), `biaya_wo`, `asset_wo_summary` (**type "none", TANPA grafik — kartu grafik jangan di-render di PDF**), `kpi_site`, `tren_bulanan`, `pareto_sparepart`, `mtbf_mttr`, `profil_teknisi`, `data_quality`.
+
+Tipe grafik (chart_type): `none | pie | line | pareto | mtbf_mttr | teknisi | bar`. Renderer terpusat di `static/chart.js` (echarts).
+
+## Route penting
+- `GET /` dashboard, `GET /detail/<category>` halaman detail, `GET /api/detail/<category>` data detail (chart+table+summary).
+- **Panel Administrasi (`admin.py` blueprint, prefix `/admin`)**: khusus role **`superadmin`** (`admin_required` cek `session["role"]=="superadmin"`; `ADMIN_ROLES=("superadmin",)`). Halaman: `/admin/` (menu), `/admin/users` (list+tambah+reset password+toggle+role), `/admin/users/<u>/access` & `/admin/access` (visibilitas kategori per user lewat `bi_user_detail_access`), `/admin/server` (override koneksi DB via `bi_settings`), `/admin/smtp` (config SMTP ke `bi_settings`).
+  - Hanya ada 2 role efektif: **`user`** (hanya kategori yang diotorisasi; login → `/`) dan **`superadmin`** (semua dashboard + panel; login → `/admin`). Akun lama ber-role `admin` diperlakukan SAMA seperti `user` biasa — **bukan** superadmin. `ADMIN_ROLES=("superadmin",)` dipakai untuk panel & visibilitas penuh. Tombol "Administrasi" di header (via `is_admin`) hanya untuk superadmin.
+  - Akses DB ke-visible disimpan di `bi_user_detail_access` (bi_username, category); guard 403 di `/detail`, `/api/detail`, `/api/report`, `/api/export`. Kategori yang diberi: hanya lewat checklist per user.
+  - **Perbandingan Dinamis** adalah item akses opsional key `compare` di `bi_user_detail_access` (bukan key QUERIES). Checkbox "Perbandingan Dinamis" di `user_access.html`; `can_compare()` di app.py → superadmin selalu ya, user lain hanya bila key `compare` ada. Guard 403 di `/compare`, `/api/compare`, `/api/compare/report`; tombol/kartu "Bandingkan" tersembunyi bila tanpa akses. User dengan akses compare saja: dashboard hanya kartu compare (tanpa kotak "belum ada akses").
+  - `db.py`: `query_all(sql, params, admin=True)` = koneksi bootstrap (auth/settings); `admin=False` (default) = koneksi data dgn override DB dari `bi_settings` (key `db_override_enabled`, `db_host/port/name/user/password`; cache 5 detik). Tabel `bi_settings` & `bi_user_detail_access` dibuat oleh migrasi (schema petroflexx_om); `bi_readonly` punya DML di semuanya.
+  - Visibilitas: user role `superadmin`/`admin` selalu lihat semua kategori; user lain hanya kategori di `bi_user_detail_access`. Guard di `/detail`, `/api/detail`, `/api/report`, `/api/export` → 403. Dashboard menampilkan kotak "belum ada akses".
+  - Login supersets role di session (`session["role"]`); login superadmin diarahkan ke `/admin/`. Tombol "Administrasi" di header dashboard (dgn `is_admin` dari context processor).
+- `GET /api/export/<category>` CSV (sep `;`) via pdf route file.
+- **Notifikasi Telegram login**: `_tg_notify(username, ok, extra="")` di `app.py` → kirim pesan ke `TELEGRAM_CHAT_ID` via `https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage` (`urllib.request`, fire-and-forget daemon thread, tidak pernah melempar/gagal-obatkan login). Dipanggil di route POST `/login` untuk sukses & gagal (termasuk field kosong). Isi: status BERHASIL/GAGAL, user, IP (X-Forwarded-For), waktu, role saat sukses. Env: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (di `.env` dev & blank template `prod.env`); jika kosong di-skip. Dev Bot/chat aktif terverifikasi (`ok:true`).
+- **Test Email SMTP**: `POST /admin/smtp/test` (`to_email`), superadmin — kirim email test memakai konfigurasi SMTP TERSIMPAN via `smtplib` stdlib (port 465 → `SMTP_SSL`, else `SMTP`+`starttls` bila TLS; login bila username terisi). Flash sukses/gagal. Tombol "Kirim Test Email" di `admin/smtp.html`. Tidak ada dependency baru.
+- `GET /api/report/<category>` — **PDF**. Params `from`, `to`, `sites`, `limit`. Response `application/pdf`, nama `laporan-{category}-{start}-{end}.pdf`. Limit row tabel di report = 60 (dari `table[:60]`); tombol Unduh di detail.html pakai `&limit=200`.
+- `GET /api/sites`, `/api/sparepart-wo` (drill sparepart), `/api/asset-wo` (drill SCH/REQ per aset), `/api/wo-list` (drill WO universal per aset/site/bulan/teknisi + filter tipe/status), `/api/charts`, `/api/docs?ids=...` (dokumen WO).
+- **Perbandingan Dinamis**: `GET /compare` (halaman interaktif), `POST /api/compare` (JSON: `{groups:[{label,from,to,sites[],tipe(SCH|REQ|""),aset,teknisi}],metrics[],base}`) → `{metrics,groups,base_index,base_label,avg,rows[]}`; `POST /api/compare/report` → PDF `perbandingan-{date}.pdf`. `GET /api/refs` → `{aset[],teknisi[]}` untuk datalist. Komponen: `COMPARE_RAW_SQL`/`COMPARE_REFS_SQL` (queries.py), `build_compare` (app.py, MAX 10 grup, wajib ≥2, delta abs+pct vs base, baris "Rata-rata Semua Grup"), `templates/compare.html` + `compare_report.html`. Sit dengan data WO saat ini: `m_org_id` 2="SSDS & SSGP", 4="BCP - SENG" (GHSF site 3 tidak punya WO).
+- Semua `/api/*` butuh `@login_required` (cookie).
+
+## Fitur drill-down WO (kolom jumlah WO bisa diklik)
+Semua kolom jumlah WO (SCH/REQ/total) di halaman detail adalah tombol `btn-jml` yang membuka side panel daftar WO:
+- `Sparepart Fast Moving` (`jmlwo`) → `/api/sparepart-wo?name=`
+- `asset_wo_summary` (`sch_total`/`req_total`) → `/api/asset-wo?name=&tipe=`
+- `kpi_site` (`total_wo`/`sch`/`req`/`open`) → `/api/wo-list?site=`
+- `tren_bulanan` (`total`/`sch`/`req`) → `/api/wo-list?bulan=`
+- `mtbf_mttr` (`wo_total`) → `/api/wo-list?aset=&tipe=SCH`
+- `profil_teknisi` (`wo_total`/`wo_cl`/`backlog`) → `/api/wo-list?teknisi=`
+- Side panel mode `wo` menampilkan kolom Tipi/No WO/Tanggal/Status/Deskripsi (SIDE_MODE di `detail.html`).
+- `WO_LIST_SQL` (`queries.py`) = generic: filter opsional `aset/site/bulan/teknisi/tipe(SCH|REQ)/status(open|closed|backlog)`.
+
+## Laporan PDF (Playwright)
+- `generate_pdf(html)` di `app.py`: per-request (bukan singleton) — `sync_playwright().start()` → launch chromium (`--no-sandbox --disable-dev-shm-usage --disable-gpu`) → `new_page(viewport 1120x1500, device_scale_factor=2)` → `page.set_content(html, wait_until="networkidle", timeout=60000)` → `page.pdf(format="A4", print_background=True)`. Overhead ~2-10 detik/request.
+- `set_content` TIDAK punya argumen `base_url` → semua JS/CSS/logo di-inline agar self-contained.
+- Jinja: JSON di `<script type="application/json">` WAJIB `|safe` (autoescape merusak JSON). `_json_default` di app.py menangani datetime/date/Decimal.
+- **Header laporan seragam semua kategori** (logo chip putih, "PT. PETROFLEXX PRIMA DAYA", meta Periode/Oleh/tanggal). Yang DIVERIFIKASI seragam: tinggi font header 10.1pt, "PRIMA" tidak wrap.
+- **Konten dinamis**: `table-layout: auto` pada tabel (kolom menyesuaikan), `overflow-wrap: break-word` (bukan `anywhere` agar nama tidak pecah huruf demi huruf).
+- **Anti-overflow chart**: `#chart { width: 660px; height: 420px; max-width: 100% }` — lebar tetap ini = lebar konten print A4 (bukan `width:100%` yang diukur di viewport layar ~1072px sehingga overflow ±400px saat print reflow ke ~676px).
+- Akses logo inline → `static/logo-petroflexx.png` di-embed data URI.
+
+## Jebakan / catatan
+- Cek statistik & ringkasan pakai pdftotext (`-bbox` untuk ukuran font/posisi). Pixel analysis ad-hoc tanpa PIL hanya benar jika implementasi unfilter PNG benar (None/Sub/Up/Average/Paeth).
+- Playwright di host: cookie Netscape punya prefix `#HttpOnly_` di kolom domain → parse gagal. Cara andal: login langsung di browser (fill username/password).
+
+## Status (terakhir dikerjakan)
+- SEMUA fitur dashboard BI (Pareto, MTBF/MTTR, Profil Teknisi, Data Quality, dashboard 5 seksi, chart echarts lokal, drill WO, CATALOG PDF) sudah selesai & diverifikasi.
+- PDF: header seragam, konten dinamis, chart tidak overflow, kartu grafik dihilangkan utk `asset_wo_summary` (type none), teks "Aplikasi CMMS" (bukan "Maintenance CMMS") di semua title.
+- build image container playwright+chromium OK.
+- **Fitur Perbandingan Dinamis** selesai & diverifikasi end-to-end: halaman `/compare` (N grup, periode bebas per grup, dropdown site multi, tipe SCH/REQ, aset/teknisi datalist, pilih metrik, baseline, grafik bar + tabel dengan delta ▲/▼/Δ dan baris Rata-rata), PDF `perbandingan-*.pdf` 1 halaman tanpa overflow, loader "G N I D A O L", tanpa error JS.
+- **Versioning**: footer semua halaman & PDF menampilkan `Powered By Smart-Plus.id 2026 · {{ app_version }}` tengah-bawah (di-inject via context processor `inject_user`: `app_version=APP_VERSION_FULL` (format `v{APP_VERSION}.{YYMMDD}`, default `1.3.0` → `v1.3.0.260912`), `license_text`, `dashboard_title`). Entry point: tombol "Bandingkan" di header (dashboard & detail) + kartu folder ungu di dashboard → `/compare`.
+- Detail halaman: `.btn-compare` di `.user-box`; kartu compare memakai class `folder-card` tanpa `data-key` (handler folder-card hanya menjalankan `getDetailUrl` bila `dataset.key` ada).
+- **Panel Superadmin** selesai & diverifikasi: login superadmin (→ `/admin/`); kredensial asli ADA di file GITIGNORED (`.env`/`prod.env` key `SUPERADMIN_PASSWORD`, rujukan lengkap `NOTES.md`), akun `admin` ber-role `user` (password: file gitignored) — hanya kategori yang diberi akses. CRUD user, reset password, role (user/superadmin), aktif/nonaktif, visibilitas kategori (403 bila tidak diizinkan), setting DB (override `bi_settings`) & SMTP tersimpan, tanpa error JS. Migrasi tabel & seed superadmin dilakukan manual via psql `cmms_bi` (superuser, pw di env db container); `bi_readonly` TIDAK bisa CREATE TABLE di schema.
+- DB container superuser: `cmms_bi` (POSTGRES_USER/PASSWORD dari image db). `bi_readonly` hanya punya DML, bukan DDL.
+- **Produksi = 2 DB (VPS ompetroflexx)**: env `DB_*` di `prod.env` menunjuk ke **DB APLIKASI docker** (untuk `bi_user`/`bi_settings`/`bi_user_detail_access` = login & panel, writable). **DB Data CMMS** (`localhost:1032/petroflexx_om`, user `petroflexx_om`) hanya dibaca via override di panel (Pengaturan Database CMMS) → koneksi data dipaksa read-only oleh `db.py`. Deploy: `deploy_produksi.sh` (generate `SECRET_KEY` → compose → `migrasi_produksi.py` idempotent di DB APLIKASI → test login).
