@@ -14,6 +14,7 @@ services:
       DB_USER: ${DB_USER:-petroflexx_om}
       DB_PASSWORD: ${DB_PASSWORD:-}
       DASHBOARD_TITLE: ${DASHBOARD_TITLE:-Aplikasi CMMS - Petroflexx OM}
+      APP_ENV: ${APP_ENV:-production}
       SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY di prod.env}
       MEDIA_WO_PATH: ${MEDIA_WO_PATH:-/opt/tomcat/media/WO}
       MEDIA_ROOT: ${MEDIA_ROOT:-/opt/tomcat/media}

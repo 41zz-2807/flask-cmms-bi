@@ -6,6 +6,7 @@ import threading
 import urllib.parse
 import urllib.request
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 from decimal import Decimal
 from functools import wraps
 from io import StringIO
@@ -57,6 +58,12 @@ LICENSE_TEXT = os.getenv("LICENSE_TEXT", "Powered By Smart-Plus.id 2026")
 APP_VERSION_FULL = "v{}.{}".format(APP_VERSION, date.today().strftime("%y%m%d"))
 FOLDER_COLORS = ["#1985a0", "#e67e22", "#27ae60", "#8e44ad", "#c0392b"]
 
+APP_ENV = (os.getenv("APP_ENV", "") or "").strip().lower()
+if APP_ENV in ("production", "prod"):
+    APP_ENV_LABEL = "SERVER PRODUKSI"
+else:
+    APP_ENV_LABEL = "SERVER TESTER/LOKAL"
+
 
 def get_dashboard_title():
     """Judul dashboard: override dari bi_settings bila ada, else env default."""
@@ -88,11 +95,12 @@ def _tg_notify(username, ok, extra=""):
     ip = (request.headers.get("X-Forwarded-For", "") or request.remote_addr or "-").split(",")[0].strip()
     text = (
         "Login CMMS BI {}\n"
+        "Server: {}\n"
         "User: {}\n"
         "IP: {}\n"
         "Waktu: {}{}"
-    ).format(status, username or "(tanpa user)", ip,
-             datetime.now().strftime("%d/%m/%Y %H:%M:%S"), extra)
+    ).format(status, APP_ENV_LABEL, username or "(tanpa user)", ip,
+             datetime.now(ZoneInfo("Asia/Jakarta")).strftime("%d/%m/%Y %H:%M:%S WIB"), extra)
 
     def _send():
         try:
