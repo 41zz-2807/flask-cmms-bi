@@ -76,7 +76,7 @@ window.BI_GUIDES = (function () {
         ["durasi_total_jam", "Durasi keseluruhan dari dibuat sampai ditutup."],
         ["durasi_approval_jam", "Waktu yang dihabiskan pada tahap approval sampai eksekusi selesai (CO)."],
         ["durasi_exec_jam", "Waktu dari eksekusi selesai (CO) sampai ditutup (CL)."],
-        ["jml_approval", "Jumlah tahap/level persetujuan yang dilalui dalam alur approval."],
+        ["jml_approval", "Jumlah tahap/level persetujuan. <b>Klik angkanya</b> untuk melihat riwayat approval lengkap: siapa (nama &amp; jabatan) yang menyetujui dan kapan (Waktu/Tindakan)."],
       ],
     },
     tren_bulanan: {
@@ -130,16 +130,19 @@ window.BI_GUIDES = (function () {
     },
     pm_compliance: {
       intro:
-        '<p>Mengukur <b>kepatuhan pemeliharaan rutin terjadwal</b> (preventive maintenance/SCH). Target umum kepatuhan adalah <b>&ge; 80%</b> — artinya minimal 8 dari 10 WO jadwal berhasil diselesaikan.</p>',
+        '<p>Mengukur <b>kepatuhan terhadap jadwal pelaksanaan PM</b> (preventive maintenance/SCH). WO diambil berdasarkan <b>tanggal jadwal</b> (<code>process_date</code>); kepatuhan dihitung dari kapan WO ini <b>mulai berjalan</b> (aktivitas pertama pada riwayat approval). Target umum <b>&ge; 80%</b> dikerjakan pada atau sebelum jadwal.</p>',
       chart:
-        '<p>Grafik <b>lingkaran (pie)</b>: membagi seluruh WO jadwal (SCH) berdasarkan statusnya. Potongan <b>CL</b> (hijau, selesai) adalah porsi yang telat tertunda; makin besar potongan "belum selesai", makin rendah kepatuhan.</p>',
+        '<p>Grafik <b>lingkaran (pie)</b>: membagi seluruh WO jadwal (SCH) menurut kepatuhan, yaitu: <b>Tepat Jadwal</b> (hijau), <b>Dikerjakan Lebih Awal</b> (biru), <b>Terlambat</b> (oranye), dan <b>Belum Dikerjakan</b> (merah).</p>',
       table:
-        '<p>Daftar semua WO rutin (SCH) pada periode. Gunakan kolom <b>Status</b> untuk melihat mana yang belum CL.</p>',
+        '<p>Daftar WO rutin (SCH) yang jadwalnya (<b>Jadwal PM</b>) berada pada periode. Kolom <b>Mulai Dikerjakan</b> &amp; <b>Selisih</b> membandingkan pelaksanaan terhadap jadwal.</p>',
       columns: [
         ["no_wo", "Nomor WO (klik untuk membuka dokumen bila ada)."],
         ["description", "Uraian pekerjaan rutin."],
         ["status", "Status WO (CL = selesai; lainnya = belum selesai)."],
-        ["tanggal", "Tanggal WO dibuat."],
+        ["jadwal", "Tanggal jadwal pelaksanaan (process_date)."],
+        ["tgl_mulai", "Tanggal aktivitas pertama WO pada riwayat approval."],
+        ["selisih", "Selisih hari mulai vs jadwal (positif = terlambat, negatif = lebih awal)."],
+        ["ket", "Kategori kepatuhan: Tepat Jadwal / Lebih Awal / Terlambat / Belum Dikerjakan."],
         ["tipe", "Jenis WO — pada halaman ini selalu SCH."],
       ],
     },

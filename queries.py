@@ -18,12 +18,24 @@ QUERIES = {
         "title": "Kepatuhan Jadwal Rutin (Preventive Maintenance)",
         "type": "pie",
         "sql": """
-            SELECT COALESCE(doc_status, 'UNKNOWN') AS x, COUNT(om_wo_id) AS y
-            FROM om_wo
-            WHERE type ILIKE 'SCH'
-              AND created_date BETWEEN %(start_date)s AND %(end_date)s
-              AND (%(m_org_ids)s IS NULL OR m_org_id = ANY(%(m_org_ids)s))
-            GROUP BY doc_status;
+            SELECT CASE
+                     WHEN h.started IS NULL THEN 'Belum Dikerjakan'
+                     WHEN h.started < w.process_date THEN 'Dikerjakan Lebih Awal'
+                     WHEN h.started = w.process_date THEN 'Tepat Jadwal'
+                     ELSE 'Terlambat'
+                   END AS x,
+                   COUNT(*) AS y
+            FROM om_wo w
+            LEFT JOIN (
+                SELECT a.om_wo_id, MIN(ah.created_date)::date AS started
+                FROM om_wo_appr a
+                JOIN om_wo_appr_history ah ON ah.om_wo_appr_id = a.om_wo_appr_id
+                GROUP BY a.om_wo_id
+            ) h ON h.om_wo_id = w.om_wo_id
+            WHERE w.type ILIKE 'SCH'
+              AND w.process_date BETWEEN %(start_date)s AND %(end_date)s
+              AND (%(m_org_ids)s IS NULL OR w.m_org_id = ANY(%(m_org_ids)s))
+            GROUP BY 1
         """,
     },
     "sparepart_fast_moving": {
@@ -149,12 +161,26 @@ TABLE_SQL = {
     """,
     "pm_compliance": """
         SELECT DISTINCT w.om_wo_id AS wo_id, w.value AS no_wo, w.description, w.doc_status AS status,
-               w.created_date AS tanggal, w.type AS tipe
+               w.process_date AS jadwal,
+               h.started AS tgl_mulai,
+               (h.started - w.process_date) AS selisih,
+               CASE
+                   WHEN h.started IS NULL THEN 'Belum Dikerjakan'
+                   WHEN h.started < w.process_date THEN 'Dikerjakan Lebih Awal'
+                   WHEN h.started = w.process_date THEN 'Tepat Jadwal'
+                   ELSE 'Terlambat'
+               END AS ket
         FROM om_wo w
+        LEFT JOIN (
+            SELECT a.om_wo_id, MIN(ah.created_date)::date AS started
+            FROM om_wo_appr a
+            JOIN om_wo_appr_history ah ON ah.om_wo_appr_id = a.om_wo_appr_id
+            GROUP BY a.om_wo_id
+        ) h ON h.om_wo_id = w.om_wo_id
         WHERE w.type ILIKE 'SCH'
-          AND w.created_date BETWEEN %(start_date)s AND %(end_date)s
+          AND w.process_date BETWEEN %(start_date)s AND %(end_date)s
           AND (%(m_org_ids)s IS NULL OR w.m_org_id = ANY(%(m_org_ids)s))
-        ORDER BY w.created_date DESC
+        ORDER BY w.process_date DESC
     """,
     "sparepart_fast_moving": """
         WITH top AS (
@@ -329,6 +355,26 @@ TABLE_SQL = {
     """,
 }
 
+WO_APPROVALS_SQL = """
+    SELECT h.last_status, h.last_approved, h.last_approval,
+           COALESCE(m.name, '') AS approver,
+           COALESCE(r.name, '') AS role,
+           h.created_date AS approval_date
+    FROM om_wo_appr a
+    INNER JOIN om_wo_appr_history h ON h.om_wo_appr_id = a.om_wo_appr_id
+    LEFT JOIN m_user m ON m.m_user_id = h.last_approved
+    LEFT JOIN m_role r ON r.m_role_id = h.last_approval
+    WHERE a.om_wo_id = %(wo_id)s
+      AND a.om_wo_appr_id = (
+          SELECT la.om_wo_appr_id
+          FROM om_wo_appr la
+          WHERE la.om_wo_id = %(wo_id)s
+          ORDER BY la.created_date DESC, la.om_wo_appr_id DESC
+          LIMIT 1
+      )
+    ORDER BY h.created_date
+"""
+
 SUMMARY_SQL = {
     "asset_wo_frequency": """
         WITH top AS (
@@ -358,13 +404,22 @@ SUMMARY_SQL = {
     """,
     "pm_compliance": """
         SELECT COUNT(*) AS total,
-               COUNT(*) FILTER (WHERE doc_status = 'CL') AS closed,
-               COUNT(*) FILTER (WHERE doc_status IN ('CO', 'RE', 'IP')) AS open,
-               ROUND(COUNT(*) FILTER (WHERE doc_status = 'CL') * 100.0 / NULLIF(COUNT(*), 0), 1) AS pct_closed
-        FROM om_wo
-        WHERE type ILIKE 'SCH'
-          AND created_date BETWEEN %(start_date)s AND %(end_date)s
-          AND (%(m_org_ids)s IS NULL OR m_org_id = ANY(%(m_org_ids)s))
+               COUNT(*) FILTER (WHERE h.started = w.process_date) AS tepat,
+               COUNT(*) FILTER (WHERE h.started IS NOT NULL AND h.started < w.process_date) AS awal,
+               COUNT(*) FILTER (WHERE h.started IS NOT NULL AND h.started > w.process_date) AS telat,
+               COUNT(*) FILTER (WHERE h.started IS NULL) AS belum,
+               ROUND(COUNT(*) FILTER (WHERE h.started IS NOT NULL AND h.started <= w.process_date) * 100.0
+                     / NULLIF(COUNT(*), 0), 1) AS pct
+        FROM om_wo w
+        LEFT JOIN (
+            SELECT a.om_wo_id, MIN(ah.created_date)::date AS started
+            FROM om_wo_appr a
+            JOIN om_wo_appr_history ah ON ah.om_wo_appr_id = a.om_wo_appr_id
+            GROUP BY a.om_wo_id
+        ) h ON h.om_wo_id = w.om_wo_id
+        WHERE w.type ILIKE 'SCH'
+          AND w.process_date BETWEEN %(start_date)s AND %(end_date)s
+          AND (%(m_org_ids)s IS NULL OR w.m_org_id = ANY(%(m_org_ids)s))
     """,
     "sparepart_fast_moving": """
         WITH top AS (

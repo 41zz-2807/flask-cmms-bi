@@ -1,0 +1,64 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<style>
+  .ap-sec { background: #fff; border: 1px solid #e2e6ea; border-radius: 10px; padding: 18px; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(15,42,61,0.06); }
+  .ap-sec h3 { font-size: 14px; font-weight: 700; color: #0f2a3d; margin-bottom: 4px; }
+  .ap-sec .sub { font-size: 12.5px; color: #5b6472; margin-bottom: 14px; }
+  .ap-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .ap-title-row input[type="text"] { flex: 1 1 360px; min-width: 260px; padding: 9px 12px; border: 1px solid #cdd6dd; border-radius: 8px; font-size: 13px; }
+  .ap-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; }
+  .ap-item { display: flex; align-items: center; gap: 10px; border: 1px solid #e2e6ea; border-radius: 8px; padding: 10px 12px; background: #fafcfd; }
+  .ap-swatch { width: 34px; height: 34px; border-radius: 8px; flex: 0 0 auto; border: 1px solid #dbe7ee; }
+  .ap-item .ap-name { flex: 1 1 auto; min-width: 0; font-size: 12.5px; font-weight: 600; color: #33414f; }
+  .ap-item input[type="text"] { width: 150px; padding: 7px 9px; border: 1px solid #cdd6dd; border-radius: 7px; font-size: 12.5px; }
+  .ap-item input[type="color"] { width: 42px; height: 34px; padding: 2px; border: 1px solid #cdd6dd; border-radius: 7px; background: #fff; cursor: pointer; }
+  .ap-actions { display: flex; gap: 10px; align-items: center; margin-top: 4px; }
+  .ap-actions button { background: #1985a0; color: #fff; border: none; border-radius: 999px; padding: 9px 22px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .ap-actions button:hover { background: #0c6d86; }
+  .ap-hint { font-size: 12px; color: #8a94a3; }
+  .ap-hint code { background: #eef1f4; border-radius: 4px; padding: 1px 5px; }
+</style>
+
+<div class="ap-sec">
+  <h3>Judul Dashboard</h3>
+  <div class="sub">Judul ini tampil di pojok kiri atas dashboard dan laporan (PDF). Kosongkan untuk kembali ke judul bawaan.</div>
+  <div class="ap-title-row">
+    <input type="text" name="dashboard_title" id="ap-title" placeholder="Judul bawaan: {{ dashboard_title_now }}" value="">
+    <span class="ap-hint">Contoh: <code>Aplikasi CMMS Petroflexx</code></span>
+  </div>
+</div>
+
+<form method="post" action="{{ url_for('admin.appearance') }}">
+  <div class="ap-sec">
+    <h3>Folder Kartu Dashboard</h3>
+    <div class="sub">Ubah nama folder dan pilih warna custom per kartu (format hex). Kosongkan nama folder untuk memakai nama bawaan.</div>
+    <div class="ap-list">
+      {% for it in items %}
+      <div class="ap-item">
+        <div class="ap-swatch" style="background:{{ it.color }}"></div>
+        <div class="ap-name" title="{{ it.title }}">{{ it.title }}</div>
+        <input type="text" name="t_{{ it.key }}" value="{{ it.custom_title }}" placeholder="Nama custom">
+        <input type="color" name="c_{{ it.key }}" value="{{ it.color }}">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="ap-actions">
+    <button type="submit">Simpan Tampilan</button>
+    <span class="ap-hint">Perubahan langsung terlihat di dashboard.</span>
+  </div>
+</form>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var title = document.getElementById("ap-title");
+    var sync = function () {
+      var fav = document.querySelector('link[rel*="favicon"]');
+      if (fav) fav.href = "data:image/svg+xml," + encodeURIComponent(title.value ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#1985a0"/><text x="16" y="22" font-size="15" fill="#fff" text-anchor="middle" font-weight="bold">' + (title.value || "C") + '</text></svg>' : '');
+    };
+    title.addEventListener("input", sync);
+    sync();
+  });
+</script>
+{% endblock %}

@@ -56,8 +56,13 @@
     <p>Mengatur server SMTP outgoing: host, port, autentikasi user, pengirim (from) dan keamanan TLS.</p>
     <span class="go">Atur Email &rarr;</span>
   </a>
-  <a class="card c4" href="{{ url_for('admin.access') }}">
-    <h3>4. Visibilitas Dashboard per User</h3>
+  <a class="card c4" href="{{ url_for('admin.appearance') }}">
+    <h3>4. Tampilan Dashboard</h3>
+    <p>Mengubah judul dashboard dan nama/warna folder (kartu) di beranda sesuai keinginan, tanpa ubah kode. Perubahan langsung terlihat.</p>
+    <span class="go">Atur Tampilan &rarr;</span>
+  </a>
+  <a class="card c2" href="{{ url_for('admin.access') }}">
+    <h3>5. Visibilitas Dashboard per User</h3>
     <p>Menampilkan atau menyembunyikan halaman dashboard detail (per kategori laporan) untuk setiap user. User tanpa hak hanya melihat dashboard kosong.</p>
     <span class="go">Atur Visibilitas &rarr;</span>
   </a>

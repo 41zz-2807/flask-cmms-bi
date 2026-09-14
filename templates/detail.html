@@ -332,6 +332,96 @@
       white-space: nowrap;
     }
     thead th:last-child, tbody td:last-child { border-right: none; }
+    .th-f {
+      margin-left: 6px;
+      border: none;
+      background: transparent;
+      color: #8a94a3;
+      font-size: 11px;
+      cursor: pointer;
+      padding: 2px 5px;
+      border-radius: 5px;
+      vertical-align: middle;
+    }
+    thead th:hover .th-f { color: #0c5c72; }
+    .th-f:hover { background: #e8eef2; }
+    .th-f.on { color: #0c5c72; background: #dcebe2; }
+    .th-f.dim .arrow { opacity: 0.35; }
+    .th-menu {
+      position: fixed;
+      z-index: 120;
+      background: #fff;
+      border: 1px solid #d7dee4;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(15, 42, 61, 0.16);
+      width: 232px;
+      padding: 10px;
+      display: none;
+      font-size: 12.5px;
+      color: #33414f;
+    }
+    .th-menu.open { display: block; }
+    .th-menu .tm-title { font-size: 11px; font-weight: 700; color: #8a94a3; text-transform: uppercase; letter-spacing: 0.4px; margin: 4px 2px 6px; }
+    .tm-sort { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px; }
+    .tm-sort button {
+      border: 1px solid #d7dee4;
+      background: #f7f9fb;
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #33414f;
+      cursor: pointer;
+      text-align: left;
+    }
+    .tm-sort button:hover { border-color: #0c5c72; color: #0c5c72; }
+    .tm-sort button.sel { background: #0c5c72; border-color: #0c5c72; color: #fff; }
+    .tm-search { position: relative; margin-bottom: 6px; }
+    .tm-search input {
+      width: 100%;
+      border: 1px solid #cfd6dd;
+      border-radius: 7px;
+      padding: 6px 10px;
+      font-size: 12.5px;
+      font-family: inherit;
+    }
+    .tm-list { max-height: 180px; overflow: auto; }
+    .tm-opt {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .tm-opt:hover { background: #f0f5f8; }
+    .tm-opt input { accent-color: #0c5c72; }
+    .tm-opt .tm-val { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+    .tm-opt .tm-cnt { color: #8a94a3; font-size: 11px; }
+    .tm-foot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+      border-top: 1px solid #eef1f4;
+      padding-top: 8px;
+      font-size: 12px;
+      color: #8a94a3;
+    }
+    .tm-foot button {
+      border: none;
+      background: #eef1f4;
+      color: #b03a30;
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tm-foot button:hover { background: #fdebec; }
+    .tm-foot .tm-clearall { margin-left: auto; color: #0c5c72; background: none; border: 1px solid #cfd6dd; }
+    .tm-foot .tm-clearall:hover { background: #f0f5f8; }
+    .tm-none { padding: 8px 6px; color: #8a94a3; font-style: italic; }
     tbody td { padding: 9px 14px; border-bottom: 1px solid #eef1f4; border-right: 1px solid #eef1f4; vertical-align: top; }
     tbody tr:hover { background: #f4f8fa; }
     td.no-wo { font-weight: 600; color: #0c5c72; white-space: nowrap; }
@@ -391,6 +481,85 @@
       color-scheme: light;
     }
     .btn-jml:hover { background: #d9eef2; border-color: #9fc4d8; }
+    .appr-cell .appr-btn {
+      border: 1px solid #e7d4c0;
+      background: #fdf6ee;
+      color: #a05a12;
+      border-radius: 999px;
+      padding: 3px 13px;
+      font-weight: 700;
+      font-size: 12.5px;
+      cursor: pointer;
+      white-space: nowrap;
+      color-scheme: light;
+    }
+    .appr-cell .appr-btn:hover { background: #f7e7d2; border-color: #d8b980; }
+    .appr-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2100;
+      background: rgba(10,25,35,.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .appr-overlay.open { display: flex; }
+    .appr-modal {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 18px 48px rgba(10,25,35,.3);
+      width: min(860px, 100%);
+      max-height: 82vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .appr-modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      background: #f2fafc;
+      border-bottom: 1px solid #dbe7ee;
+    }
+    .appr-modal-head span { font-size: 14px; font-weight: 700; color: #0c5c72; }
+    .appr-x {
+      border: none;
+      background: transparent;
+      color: #5b6472;
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .appr-x:hover { background: #e3f4f7; color: #07514f; }
+    .appr-body {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 14px 18px 18px;
+    }
+    .appr-body table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .appr-body th, .appr-body td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid #edf2f5;
+      vertical-align: top;
+    }
+    .appr-body th {
+      color: #5b6472;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      background: #f6fafb;
+      position: sticky;
+      top: 0;
+    }
+    .appr-body tr:hover td { background: #f8fbfc; }
+    .appr-loading { color: #8a94a3; font-size: 13px; padding: 18px 4px; }
+    .appr-body .status { display: inline-block; }
     .btn-export {
       display: inline-block;
       font-size: 12.5px;
@@ -404,6 +573,33 @@
       white-space: nowrap;
     }
     .btn-export:hover { background: #0c6d86; }
+    .exp-wrap { position: relative; display: inline-block; }
+    .exp-btn { display: inline-flex; align-items: center; gap: 6px; }
+    .exp-caret { font-size: 10px; }
+    .exp-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: calc(100% + 6px);
+      background: #fff;
+      border: 1px solid #dbe7ee;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(10,25,35,.12);
+      min-width: 130px;
+      padding: 6px;
+      z-index: 50;
+    }
+    .exp-wrap.open .exp-menu { display: block; }
+    .exp-item {
+      display: block;
+      padding: 8px 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #1985a0;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+    .exp-item:hover { background: #e3f4f7; color: #07514f; }
     .side-panel {
       width: 0;
       overflow: hidden;
@@ -475,35 +671,68 @@
     }
     .error { color: #c0392b; }
 
-    .guide {
-      position: relative;
-      z-index: 1;
-      margin: 14px 24px 0;
+    .btn-guide {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f2fafc;
+      color: #0c5c72;
+      border: 1px solid #bfe0e8;
+      border-radius: 7px;
+      padding: 5px 12px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s ease, color .15s ease;
+    }
+    .btn-guide:hover { background: #e3f4f7; color: #07514f; }
+    .guide-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: rgba(10,25,35,.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .guide-overlay.open { display: flex; }
+    .guide-modal {
       background: #fff;
-      border: 1px solid #dbe7ee;
-      border-left: 4px solid #0fa3ad;
-      border-radius: 9px;
-      box-shadow: 0 1px 3px rgba(15,42,61,0.05);
+      border-radius: 12px;
+      box-shadow: 0 18px 48px rgba(10,25,35,.3);
+      width: min(720px, 100%);
+      max-height: 82vh;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
-    .guide summary {
-      list-style: none;
-      cursor: pointer;
+    .guide-modal-head {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 11px 16px;
-      font-size: 13px;
-      font-weight: 700;
-      color: #0c5c72;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
       background: #f2fafc;
-      user-select: none;
+      border-bottom: 1px solid #dbe7ee;
     }
-    .guide summary::-webkit-details-marker { display: none; }
-    .guide summary .chev { margin-left: auto; color: #5b6472; transition: transform .15s ease; }
-    .guide[open] summary .chev { transform: rotate(90deg); }
+    .guide-modal-head span { font-size: 14px; font-weight: 700; color: #0c5c72; }
+    .guide-x {
+      border: none;
+      background: transparent;
+      color: #5b6472;
+      font-size: 24px;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+    .guide-x:hover { background: #e3f4f7; color: #07514f; }
     .guide-body {
-      padding: 4px 16px 16px;
+      flex: 1 1 auto;
+      overflow-y: auto;
+      padding: 6px 16px 16px;
       color: #33414f;
       font-size: 13px;
       line-height: 1.65;
@@ -560,6 +789,7 @@
     <div class="user-box">
       <span class="user-name">{{ current_full_name }}</span>
       {% if can_compare %}<a class="btn-compare" href="/compare" title="Bandingkan kinerja antar periode &amp; site">Bandingkan</a>{% endif %}
+      <button class="btn-guide" id="btn-guide" type="button" title="Panduan membaca halaman ini">Panduan</button>
       <a class="btn-logout" href="{{ url_for('logout') }}">Keluar</a>
     </div>
   </div>
@@ -583,10 +813,30 @@
     <span class="right" id="lbl-updated"></span>
   </div>
 
-  <details class="guide" id="guide-box">
-    <summary><span>Panduan Membaca Halaman Ini</span><span class="chev">&rsaquo;</span></summary>
-    <div class="guide-body" id="guide-body"></div>
-  </details>
+  <div class="guide-overlay" id="guide-overlay" aria-hidden="true">
+    <div class="guide-modal" role="dialog" aria-modal="true" aria-label="Panduan Membaca Halaman Ini">
+      <div class="guide-modal-head"><span>Panduan Membaca Halaman Ini</span><button class="guide-x" id="guide-close" type="button" aria-label="Tutup popup">&times;</button></div>
+      <div class="guide-body" id="guide-body"></div>
+    </div>
+  </div>
+
+  <div class="appr-overlay" id="appr-overlay" aria-hidden="true">
+    <div class="appr-modal" role="dialog" aria-modal="true" aria-label="Riwayat Approval WO">
+      <div class="appr-modal-head">
+        <span id="appr-title">Riwayat Approval</span>
+        <button class="appr-x" id="appr-close" type="button" aria-label="Tutup popup">&times;</button>
+      </div>
+      <div class="appr-body">
+        <table>
+          <thead>
+            <tr><th>Waktu</th><th>Jabatan (Role)</th><th>Nama</th><th>Tindakan</th></tr>
+          </thead>
+          <tbody id="appr-tbody"></tbody>
+        </table>
+        <div class="appr-loading" id="appr-loading"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="card">
     <div class="card-title">Grafik</div>
@@ -597,8 +847,13 @@
     <div class="kpi-row" id="kpi-row"></div>
     <div class="table-head">
       <h2>Daftar Data</h2>
-      <a class="btn-export" id="btn-pdf" download>Unduh Laporan (PDF)</a>
-      <a class="btn-export" id="btn-export" download>Ekspor CSV</a>
+      <div class="exp-wrap" id="exp-wrap">
+        <button class="btn-export exp-btn" id="btn-exp-btn" type="button">Unduh <span class="exp-caret">&#9662;</span></button>
+        <div class="exp-menu" id="exp-menu">
+          <a class="exp-item" id="btn-pdf" download>PDF</a>
+          <a class="exp-item" id="btn-export" download>CSV</a>
+        </div>
+      </div>
       <span class="count" id="lbl-count"></span>
       <div class="filters">
         <input type="search" id="search" placeholder="Cari pada tabel ...">
@@ -695,6 +950,10 @@
       durasi_approval_jam: "Approval → Eksekusi",
       durasi_exec_jam: "Eksekusi → Close",
       jml_approval: "Tahap Approval",
+      jadwal: "Jadwal PM",
+      tgl_mulai: "Mulai Dikerjakan",
+      selisih: "Selisih (hari)",
+      ket: "Kepatuhan",
     };
     const PIE_COLORS = ["#1985a0", "#e67e22", "#27ae60", "#c0392b", "#8e44ad", "#95a5a6"];
     const STATUS_COLORS = {
@@ -708,11 +967,45 @@
 
     renderGuide(document.getElementById("guide-body"), CATEGORY);
 
+    (function () {
+      const btn = document.getElementById("btn-guide");
+      const overlay = document.getElementById("guide-overlay");
+      const close = document.getElementById("guide-close");
+      if (!btn || !overlay || !close) return;
+      if (!window.BI_GUIDES || !window.BI_GUIDES[CATEGORY]) { btn.style.display = "none"; return; }
+      const openGuide = () => { overlay.classList.add("open"); document.body.style.overflow = "hidden"; };
+      const closeGuide = () => { overlay.classList.remove("open"); document.body.style.overflow = ""; };
+      btn.addEventListener("click", openGuide);
+      close.addEventListener("click", closeGuide);
+      overlay.addEventListener("click", e => { if (e.target === overlay) closeGuide(); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") closeGuide(); });
+    })();
+
+    (function () {
+      const ov = document.getElementById("appr-overlay");
+      const x = document.getElementById("appr-close");
+      x.addEventListener("click", closeApprModal);
+      ov.addEventListener("click", e => { if (e.target === ov) closeApprModal(); });
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && ov.classList.contains("open")) closeApprModal();
+      });
+    })();
+
     let allRows = [];
     let docMap = {};
     let chartEl = null;
     const selectedSites = new Set();
     const sitesCache = [];
+    let sortKey = null;
+    let sortDir = "asc";
+    let sortNum = false;
+    const colFilters = {};
+    const menuEl = document.createElement("div");
+    menuEl.className = "th-menu";
+    menuEl.setAttribute("role", "menu");
+    document.body.appendChild(menuEl);
+    let menuKey = null;
+    const DATE_KEYS = new Set(["tanggal", "created_date", "closed_date", "last_date", "jadwal", "tgl_mulai"]);
 
     function fmt(value) {
       return Number(value).toLocaleString("id-ID", { maximumFractionDigits: 0 });
@@ -768,6 +1061,148 @@
       const rh = Math.round(th - d * 24);
       if (d > 0) return `${d} hari ${rh} jam`;
       return `${th} jam`;
+    }
+
+    function cellText(r, k) {
+      const v = r[k];
+      if (v === null || v === undefined || v === "") return "-";
+      if (DATE_KEYS.has(k)) return fmtDate(v);
+      if (k === "durasi") return fmtDur(v);
+      if (k === "durasi_total_jam" || k === "durasi_approval_jam" || k === "durasi_exec_jam") return fmtDurJam(v);
+      if (k === "mttr" || k === "mtbf" || k === "med_hari" || k === "p95_hari")
+        return Number(v).toLocaleString("id-ID", { maximumFractionDigits: 1 }) + " hari";
+      if (k === "jml_approval") return Number(v).toLocaleString("id-ID") + " tahap";
+      if (k === "budget" || k === "avg_budget" || k === "budget_closed" || k === "biaya") return fmtMoney(v);
+      if (typeof v === "number") return Number(v).toLocaleString("id-ID", { maximumFractionDigits: 2 });
+      return String(v);
+    }
+
+    function sortVal(r, k, numeric) {
+      const v = r[k];
+      if (v === null || v === undefined || v === "") return numeric ? -Infinity : "\uffff";
+      if (numeric) {
+        if (typeof v === "number") return v;
+        const s = String(v).trim();
+        const n = Number(s);
+        if (!isNaN(n)) return n;
+        const t = Date.parse(s);
+        return isNaN(t) ? NaN : t;
+      }
+      return cellText(r, k);
+    }
+
+    function rowCompare(a, b) {
+      const x = sortVal(a, sortKey, sortNum);
+      const y = sortVal(b, sortKey, sortNum);
+      let res;
+      if (sortNum && typeof x === "number" && typeof y === "number") {
+        res = x - y;
+        if (isNaN(res)) res = String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? ""), "id", { numeric: true, sensitivity: "base" });
+      } else {
+        res = String(x).localeCompare(String(y), "id", { numeric: true, sensitivity: "base" });
+      }
+      if (res === 0) res = String(a.no_wo ?? "").localeCompare(String(b.no_wo ?? ""), "id", { numeric: true, sensitivity: "base" });
+      return sortDir === "desc" ? -res : res;
+    }
+
+    function menuValues(k) {
+      const map = new Map();
+      for (const r of allRows) {
+        const t = cellText(r, k);
+        map.set(t, (map.get(t) || 0) + 1);
+      }
+      return Array.from(map.entries()).sort((a, b) => String(a[0]).localeCompare(String(b[0]), "id", { numeric: true, sensitivity: "base" }));
+    }
+
+    function updateTmCount() {
+      const el = menuEl.querySelector("#tm-selcount");
+      if (el && menuKey) el.textContent = (colFilters[menuKey] ? colFilters[menuKey].size : 0) + " terpilih";
+    }
+
+    function buildTmList(k, q) {
+      const list = menuEl.querySelector("#tm-list");
+      const sel = colFilters[k] || (colFilters[k] = new Set());
+      const ql = (q || "").toLowerCase();
+      const vals = menuValues(k).filter(([t]) => !ql || String(t).toLowerCase().includes(ql));
+      list.innerHTML = "";
+      if (!vals.length) {
+        const d = document.createElement("div");
+        d.className = "tm-none";
+        d.textContent = "Tidak ada nilai";
+        list.appendChild(d);
+      }
+      vals.forEach(([t, n]) => {
+        const lab = document.createElement("label");
+        lab.className = "tm-opt";
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = sel.has(t);
+        cb.addEventListener("change", () => {
+          if (cb.checked) sel.add(t);
+          else sel.delete(t);
+          updateTmCount();
+          refresh();
+        });
+        const sp = document.createElement("span");
+        sp.className = "tm-val";
+        sp.textContent = t;
+        sp.title = t;
+        const c = document.createElement("span");
+        c.className = "tm-cnt";
+        c.textContent = n;
+        lab.append(cb, sp, c);
+        list.appendChild(lab);
+      });
+    }
+
+    function buildMenu(k, btn) {
+      menuKey = k;
+      const rect = btn.getBoundingClientRect();
+      let sel = colFilters[k];
+      if (!sel) { sel = new Set(); colFilters[k] = sel; }
+      const vals = menuValues(k);
+      menuEl.innerHTML = `
+        <div class="tm-title">Urutkan</div>
+        <div class="tm-sort">
+          <button type="button" data-sort="asc" data-num="0">A &rarr; Z</button>
+          <button type="button" data-sort="desc" data-num="0">Z &rarr; A</button>
+          <button type="button" data-sort="asc" data-num="1">1 &rarr; 9</button>
+          <button type="button" data-sort="desc" data-num="1">9 &rarr; 1</button>
+        </div>
+        <div class="tm-title">Filter nilai (${vals.length})</div>
+        <div class="tm-search"><input id="tm-q" type="search" placeholder="Cari nilai ..."></div>
+        <div class="tm-list" id="tm-list"></div>
+        <div class="tm-foot">
+          <span id="tm-selcount">0 terpilih</span>
+          <button type="button" id="tm-clearall">Bersihkan</button>
+          <button type="button" id="tm-reset">Reset kolom</button>
+        </div>`;
+      menuEl.querySelectorAll(".tm-sort button").forEach(b => {
+        if (b.dataset.sort === sortDir && String(b.dataset.num) === (sortNum ? "1" : "0")) b.classList.add("sel");
+      });
+      buildTmList(k, "");
+      updateTmCount();
+      menuEl.classList.add("open");
+      positionMenu();
+      if (menuEl.querySelector("#tm-q")) {
+        window.requestAnimationFrame(() => menuEl.querySelector("#tm-q").focus());
+      }
+    }
+
+    function closeMenu() {
+      menuEl.classList.remove("open");
+      menuKey = null;
+    }
+
+    function positionMenu() {
+      if (menuKey === null) return;
+      const btn = document.querySelector('.th-f[data-key="' + menuKey + '"]');
+      if (!btn) { closeMenu(); return; }
+      const rect = btn.getBoundingClientRect();
+      const w = menuEl.offsetWidth;
+      const h = menuEl.offsetHeight;
+      menuEl.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - w - 10)) + "px";
+      menuEl.style.top = Math.max(8, Math.min(rect.bottom + 6, window.innerHeight - h - 10)) + "px";
     }
 
     async function loadSites() {
@@ -845,9 +1280,14 @@
       const thead = document.getElementById("thead");
       const tbody = document.getElementById("tbody");
       const keys = rows.length ? Object.keys(rows[0]) : [];
-      const ordered = ["no_wo", "aset", "sch_total", "req_total", "sparepart", "jmlwo", "teknisi", "tipe", "tanggal", "status", "status_workflow", "created_date", "closed_date", "description", "deskripsi", "budget", "budget_closed", "durasi", "site", "total_wo", "sch", "req", "open", "pct_closed", "pct_pm", "avg_budget", "bulan", "total", "biaya", "mom_total", "yoy_total", "ma3_total", "seasonal", "qty", "share", "cum", "klas", "wo_total", "mttr", "mtbf", "last_date", "status_terakhir", "wo_cl", "med_hari", "p95_hari", "backlog", "kategori", "detail", "durasi_total_jam", "durasi_approval_jam", "durasi_exec_jam", "jml_approval"]
+      const ordered = ["no_wo", "aset", "sch_total", "req_total", "sparepart", "jmlwo", "teknisi", "tipe", "tanggal", "status", "status_workflow", "created_date", "closed_date", "jadwal", "tgl_mulai", "selisih", "ket", "description", "deskripsi", "budget", "budget_closed", "durasi", "site", "total_wo", "sch", "req", "open", "pct_closed", "pct_pm", "avg_budget", "bulan", "total", "biaya", "mom_total", "yoy_total", "ma3_total", "seasonal", "qty", "share", "cum", "klas", "wo_total", "mttr", "mtbf", "last_date", "status_terakhir", "wo_cl", "med_hari", "p95_hari", "backlog", "kategori", "detail", "durasi_total_jam", "durasi_approval_jam", "durasi_exec_jam", "jml_approval"]
         .filter(k => keys.includes(k));
-      thead.innerHTML = "<tr>" + ordered.map(k => `<th>${COL_LABELS[k] || k}</th>`).join("") + "</tr>";
+      thead.innerHTML = "<tr>" + ordered.map(k => {
+        const on = colFilters[k] && colFilters[k].size ? " on" : "";
+        const arr = sortKey === k ? (sortDir === "asc" ? "&#9650;" : "&#9660;") : "&#9662;";
+        const dim = sortKey === k ? "" : " dim";
+        return `<th>${COL_LABELS[k] || k}<button type="button" class="th-f${on}${dim}" data-key="${k}" title="Filter & urutkan kolom ${COL_LABELS[k] || k}"><span class="arrow">${arr}</span></button></th>`;
+      }).join("") + "</tr>";
       tbody.innerHTML = "";
       document.getElementById("lbl-count").textContent = rows.length + " baris";
       if (!rows.length) {
@@ -885,7 +1325,23 @@
           else if (isWoCountKey(k) && attachWoDrill(td, r, k)) {
             /* sudah diisi button di attachWoDrill */
           }
-          else if (k === "tanggal" || k === "created_date" || k === "closed_date") td.textContent = fmtDate(r[k]);
+          else if (k === "jml_approval") {
+            const n = r[k];
+            if (n === null || n === undefined || Number(n) <= 0) {
+              td.textContent = "-";
+            } else {
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.className = "appr-btn";
+              btn.textContent = fmt(r[k]) + " tahap";
+              btn.title = "Lihat siapa saja yang approval & kapan — " + (r.no_wo || "");
+              btn.dataset.woId = r.wo_id;
+              btn.addEventListener("click", () => openApprModal(r.wo_id, r.no_wo));
+              td.className = "appr-cell";
+              td.appendChild(btn);
+            }
+          }
+          else if (k === "tanggal" || k === "created_date" || k === "closed_date" || k === "jadwal" || k === "tgl_mulai") td.textContent = fmtDate(r[k]);
           else if (k === "status" || k === "status_workflow" || k === "status_terakhir") {
             const c = STATUS_COLORS[r[k]] || "#95a5a6";
             td.innerHTML = `<span class="status" style="background:${c}1a;color:${c}">${r[k] || "-"}</span>`;
@@ -922,6 +1378,10 @@
           }
           else if (k === "klas") {
             const cc = { A: "#c0392b", B: "#e67e22", C: "#27ae60" }[r[k]] || "#95a5a6";
+            td.innerHTML = `<span class="status" style="background:${cc}1a;color:${cc}">${r[k] || "-"}</span>`;
+          }
+          else if (k === "ket") {
+            const cc = { "Tepat Jadwal": "#27ae60", "Dikerjakan Lebih Awal": "#1985a0", "Terlambat": "#e67e22", "Belum Dikerjakan": "#c0392b" }[r[k]] || "#95a5a6";
             td.innerHTML = `<span class="status" style="background:${cc}1a;color:${cc}">${r[k] || "-"}</span>`;
           }
           else if (k === "durasi") td.textContent = fmtDur(r[k]);
@@ -1021,6 +1481,52 @@
       openSidePanel("/api/asset-wo?" + params.toString(), `${aset} — WO ${tipe}`, tipe === "REQ" ? "asset-req" : "asset-sch");
     }
 
+    const APPR_LABEL = { IP: "Approval", CO: "Eksekusi Selesai", CL: "Close", RE: "Rejected" };
+
+    function openApprModal(woId, noWo) {
+      const ov = document.getElementById("appr-overlay");
+      const tb = document.getElementById("appr-tbody");
+      const ld = document.getElementById("appr-loading");
+      document.getElementById("appr-title").textContent = "Riwayat Approval — " + (noWo || "WO " + woId);
+      tb.innerHTML = "";
+      ld.textContent = "Memuat riwayat ...";
+      ov.classList.add("open");
+      ov.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      fetch("/api/wo-approvals?wo_id=" + encodeURIComponent(woId))
+        .then(res => res.json())
+        .then(d => {
+          ld.textContent = "";
+          if (!d || !d.rows || !d.rows.length) {
+            tb.innerHTML = '<tr><td colspan="4"><div class="loading">Tidak ada riwayat approval.</div></td></tr>';
+            return;
+          }
+          tb.innerHTML = d.rows.map(h => {
+            const isSubmit = String(h.last_approved) === "999999999" || h.approver === "SYSTEM USER";
+            const role = isSubmit ? "Submit / Input Awal" : (h.role || "-");
+            const nama = isSubmit ? "Sistem (CMMS)" : (h.approver || "-");
+            const tindakan = isSubmit ? "Mengajukan WO untuk approval"
+              : (APPR_LABEL[h.last_status] || h.last_status || "-");
+            const cc = STATUS_COLORS[h.last_status] || "#95a5a6";
+            const t = h.approval_date ? new Date(h.approval_date) : null;
+            const waktu = t && !isNaN(t) ? t.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }) : "-";
+            return `<tr><td>${waktu}</td><td>${role}</td><td>${nama}</td>` +
+              `<td><span class="status" style="background:${cc}1a;color:${cc}">${tindakan}</span></td></tr>`;
+          }).join("");
+        })
+        .catch(() => {
+          ld.textContent = "";
+          tb.innerHTML = '<tr><td colspan="4"><div class="loading">Gagal memuat riwayat approval.</div></td></tr>';
+        });
+    }
+
+    function closeApprModal() {
+      const ov = document.getElementById("appr-overlay");
+      ov.classList.remove("open");
+      ov.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+
     const WO_COUNT_KEYS = new Set(["total_wo", "total", "sch", "req", "open", "wo_total", "wo_cl", "backlog"]);
 
     function isWoCountKey(k) { return WO_COUNT_KEYS.has(k); }
@@ -1090,11 +1596,25 @@
     });
 
     function applyFilters() {
+      renderRows(currentRows());
+    }
+
+    function currentRows() {
+      let rows = allRows;
       const q = document.getElementById("search").value.toLowerCase();
-      const filtered = allRows.filter(r =>
-        !q || Object.values(r).some(v => String(v ?? "").toLowerCase().includes(q))
-      );
-      renderRows(filtered);
+      if (q) rows = rows.filter(r => Object.values(r).some(v => String(v ?? "").toLowerCase().includes(q)));
+      const active = Object.keys(colFilters).filter(k => colFilters[k] && colFilters[k].size);
+      if (active.length) rows = rows.filter(r => active.every(k => colFilters[k].has(cellText(r, k))));
+      if (sortKey) {
+        const sorted = rows.slice();
+        sorted.sort(rowCompare);
+        rows = sorted;
+      }
+      return rows;
+    }
+
+    function refresh() {
+      renderRows(currentRows());
     }
 
     async function load() {
@@ -1122,7 +1642,7 @@
             if (dres.ok) docMap = (await dres.json()).docs;
           } catch (e) { /* ignore */ }
         }
-        renderRows(allRows);
+        refresh();
         document.getElementById("lbl-updated").textContent = "Terakhir diperbarui: " + new Date().toLocaleString("id-ID");
         window.dispatchEvent(new Event("resize"));
       } catch (e) {
@@ -1132,6 +1652,49 @@
 
     document.getElementById("search").addEventListener("input", applyFilters);
     document.getElementById("btn-apply").addEventListener("click", applyFiltersUrl);
+
+    document.getElementById("thead").addEventListener("click", e => {
+      const btn = e.target.closest(".th-f");
+      if (!btn) return;
+      e.stopPropagation();
+      if (menuKey === btn.dataset.key && menuEl.classList.contains("open")) { closeMenu(); return; }
+      buildMenu(btn.dataset.key, btn);
+    });
+    menuEl.addEventListener("click", e => {
+      const sb = e.target.closest(".tm-sort button");
+      if (sb) {
+        sortKey = menuKey;
+        sortDir = sb.dataset.sort;
+        sortNum = sb.dataset.num === "1";
+        closeMenu();
+        refresh();
+        return;
+      }
+      const clear = e.target.closest("#tm-clearall");
+      if (clear && menuKey) {
+        const sel = colFilters[menuKey];
+        if (sel) { sel.clear(); updateTmCount(); buildTmList(menuKey, (menuEl.querySelector("#tm-q") || {}).value || ""); }
+        refresh();
+        return;
+      }
+      const rst = e.target.closest("#tm-reset");
+      if (rst && menuKey) {
+        delete colFilters[menuKey];
+        if (sortKey === menuKey) { sortKey = null; sortDir = "asc"; sortNum = false; }
+        closeMenu();
+        refresh();
+        return;
+      }
+    });
+    menuEl.addEventListener("input", e => {
+      if (e.target && e.target.id === "tm-q" && menuKey) buildTmList(menuKey, e.target.value);
+    });
+    document.addEventListener("click", e => {
+      if (menuEl.classList.contains("open") && !menuEl.contains(e.target) && !e.target.closest(".th-f")) closeMenu();
+    });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeMenu(); });
+    document.addEventListener("scroll", () => { if (menuEl.classList.contains("open")) positionMenu(); }, { capture: true, passive: true });
+    window.addEventListener("resize", () => { if (menuEl.classList.contains("open")) positionMenu(); });
 
     let downloading = false;
     document.getElementById("btn-pdf").addEventListener("click", async e => {
@@ -1165,6 +1728,15 @@
       }
     });
     loadSites().then(load);
+
+    (function () {
+      const wrap = document.getElementById("exp-wrap");
+      const btn = document.getElementById("btn-exp-btn");
+      if (!wrap || !btn) return;
+      btn.addEventListener("click", e => { e.stopPropagation(); wrap.classList.toggle("open"); });
+      document.addEventListener("click", e => { if (!e.target.closest("#exp-wrap")) wrap.classList.remove("open"); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") wrap.classList.remove("open"); });
+    })();
   </script>
 
   <div class="app-footer">

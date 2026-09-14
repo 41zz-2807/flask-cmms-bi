@@ -14,9 +14,9 @@ from flask import (
     url_for,
 )
 
-from app import ADMIN_ROLES, APP_VERSION_FULL, DASHBOARD_TITLE, LICENSE_TEXT
+from app import ADMIN_ROLES, APP_VERSION_FULL, FOLDER_COLORS, LICENSE_TEXT, get_dashboard_title
 from auth import hash_password
-from db import allowed_categories, execute, query_all
+from db import allowed_categories, category_overrides, execute, query_all
 from queries import QUERIES
 
 admin_bp = Blueprint("admin", __name__, template_folder="templates")
@@ -77,7 +77,7 @@ def dashboard():
         settings=settings,
         categories=CATEGORIES,
         app_version=APP_VERSION_FULL,
-        dashboard_title=DASHBOARD_TITLE,
+        dashboard_title=get_dashboard_title(),
         license_text=LICENSE_TEXT,
     )
 
@@ -112,7 +112,7 @@ def users():
         users=query_all(_USERS_SQL, admin=True),
         categories=CATEGORIES,
         app_version=APP_VERSION_FULL,
-        dashboard_title=DASHBOARD_TITLE,
+        dashboard_title=get_dashboard_title(),
         license_text=LICENSE_TEXT,
     )
 
@@ -171,7 +171,7 @@ def access():
         users=users,
         categories=CATEGORIES,
         app_version=APP_VERSION_FULL,
-        dashboard_title=DASHBOARD_TITLE,
+        dashboard_title=get_dashboard_title(),
         license_text=LICENSE_TEXT,
     )
 
@@ -201,7 +201,7 @@ def user_access(username):
         categories=CATEGORIES,
         current=current,
         app_version=APP_VERSION_FULL,
-        dashboard_title=DASHBOARD_TITLE,
+        dashboard_title=get_dashboard_title(),
         license_text=LICENSE_TEXT,
     )
 
@@ -230,7 +230,68 @@ def server():
         "admin/server.html",
         settings=load_settings(),
         app_version=APP_VERSION_FULL,
-        dashboard_title=DASHBOARD_TITLE,
+        dashboard_title=get_dashboard_title(),
+        license_text=LICENSE_TEXT,
+    )
+
+
+_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+
+@admin_bp.route("/appearance", methods=["GET", "POST"])
+@admin_required
+def appearance():
+    if request.method == "POST":
+        new_title = (request.form.get("dashboard_title") or "").strip()
+        if len(new_title) > 120:
+            flash("Judul dashboard maksimal 120 karakter.", "error")
+            return redirect(url_for("admin.appearance"))
+        save_setting("dashboard_title", new_title)
+        rows = []
+        bad = None
+        for key, cfg in QUERIES.items():
+            t = (request.form.get("t_{}".format(key)) or "").strip()
+            c = (request.form.get("c_{}".format(key)) or "").strip()
+            if t == cfg["title"]:
+                t = ""
+            if len(t) > 120:
+                bad = "judul '{}' melebihi 120 karakter".format(cfg["title"])
+                break
+            if c and not _COLOR_RE.fullmatch(c):
+                bad = "warna '{}' tidak valid (format #RRGGBB)".format(cfg["title"])
+                break
+            rows.append((key, t, c))
+        if bad:
+            flash("Gagal menyimpan: " + bad, "error")
+            return redirect(url_for("admin.appearance"))
+        execute("DELETE FROM petroflexx_om.bi_dashboard_category", admin=True)
+        for key, t, c in rows:
+            if t or c:
+                execute(
+                    "INSERT INTO petroflexx_om.bi_dashboard_category (category, title, color, updated_at) "
+                    "VALUES (%s, %s, %s, now())",
+                    (key, t or None, c or None),
+                    admin=True,
+                )
+        flash("Tampilan dashboard diperbarui.", "ok")
+        return redirect(url_for("admin.appearance"))
+    overrides = category_overrides()
+    items = []
+    for i, (key, cfg) in enumerate(QUERIES.items()):
+        ov = overrides.get(key) or {}
+        items.append({
+            "key": key,
+            "title": cfg["title"],
+            "custom_title": ov.get("title") or "",
+            "color": ov.get("color") or FOLDER_COLORS[i % len(FOLDER_COLORS)],
+            "custom_color": ov.get("color") or "",
+        })
+    return render_template(
+        "admin/appearance.html",
+        dashboard_title_now=get_dashboard_title(),
+        items=items,
+        app_version=APP_VERSION_FULL,
+        dashboard_title=get_dashboard_title(),
         license_text=LICENSE_TEXT,
     )
 
@@ -254,14 +315,14 @@ def smtp_test():
         return redirect(url_for("admin.smtp"))
     try:
         msg = EmailMessage()
-        msg["Subject"] = "Test Email | Konfigurasi SMTP - {}".format(DASHBOARD_TITLE)
+        msg["Subject"] = "Test Email | Konfigurasi SMTP - {}".format(get_dashboard_title())
         msg["From"] = from_addr
         msg["To"] = to_addr
         msg.set_content(
             "Ini adalah email test dari panel administrasi {}.\n"
             "Jika Anda menerima email ini, konfigurasi SMTP berfungsi dengan benar.\n\n"
             "Host: {}\nPort: {}\nUsername: {}\nTLS: {}".format(
-                DASHBOARD_TITLE, host, port, user or "(tanpa login)", "Ya" if use_tls else "Tidak"
+                get_dashboard_title(), host, port, user or "(tanpa login)", "Ya" if use_tls else "Tidak"
             )
         )
         if str(port) == "465":
@@ -305,6 +366,6 @@ def smtp():
         "admin/smtp.html",
         settings=load_settings(),
         app_version=APP_VERSION_FULL,
-        dashboard_title=DASHBOARD_TITLE,
+        dashboard_title=get_dashboard_title(),
         license_text=LICENSE_TEXT,
     )

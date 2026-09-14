@@ -9,6 +9,12 @@
     IP: "#c0392b",
     DR: "#8e44ad",
   };
+  var COMPLIANCE_COLORS = {
+    "Tepat Jadwal": "#27ae60",
+    "Dikerjakan Lebih Awal": "#1985a0",
+    "Terlambat": "#e67e22",
+    "Belum Dikerjakan": "#c0392b",
+  };
 
   function fmt(value) {
     return Number(value).toLocaleString("id-ID", { maximumFractionDigits: 0 });
@@ -44,7 +50,7 @@
           type: "pie",
           radius: ["42%", "68%"],
           center: ["50%", "44%"],
-          data: rows.map(function (r) { return { name: r.x, value: Number(r.y), itemStyle: { color: STATUS_COLORS[r.x] || "#95a5a6" } }; }),
+          data: rows.map(function (r) { return { name: r.x, value: Number(r.y), itemStyle: { color: STATUS_COLORS[r.x] || COMPLIANCE_COLORS[r.x] || "#95a5a6" } }; }),
           label: { formatter: "{b}\n{d}%", fontSize: 12 },
           labelLine: { length: 12, length2: 8 },
         }],

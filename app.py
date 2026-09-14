@@ -27,7 +27,7 @@ from flask import (
 )
 
 from auth import verify_password
-from db import allowed_categories, query_all
+from db import allowed_categories, category_overrides, dashboard_title, query_all
 from queries import (
     ASSET_WO_SQL,
     COMPARE_RAW_SQL,
@@ -44,6 +44,7 @@ PROFIL_TEKNISI_BASE_SQL,
     TABLE_SQL,
     TECHNISI_BACKLOG_SQL,
     TREN_BULANAN_RAW_SQL,
+    WO_APPROVALS_SQL,
     WO_LIST_SQL,
 )
 
@@ -55,6 +56,11 @@ APP_VERSION = os.getenv("APP_VERSION", "1.3.0")
 LICENSE_TEXT = os.getenv("LICENSE_TEXT", "Powered By Smart-Plus.id 2026")
 APP_VERSION_FULL = "v{}.{}".format(APP_VERSION, date.today().strftime("%y%m%d"))
 FOLDER_COLORS = ["#1985a0", "#e67e22", "#27ae60", "#8e44ad", "#c0392b"]
+
+
+def get_dashboard_title():
+    """Judul dashboard: override dari bi_settings bila ada, else env default."""
+    return dashboard_title() or DASHBOARD_TITLE
 MEDIA_ROOT = os.getenv("MEDIA_ROOT", "").strip()
 if not MEDIA_ROOT:
     media_wo = os.getenv("MEDIA_WO_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "media", "WO")).rstrip("/")
@@ -163,7 +169,7 @@ def login():
                 return redirect(next_url)
             error = "Username atau password salah."
             _tg_notify(username, False)
-    return render_template("login.html", title=DASHBOARD_TITLE, error=error, today=date.today().isoformat(), next=request.args.get("next"))
+    return render_template("login.html", title=get_dashboard_title(), error=error, today=date.today().isoformat(), next=request.args.get("next"))
 
 
 @app.route("/logout", methods=["GET", "POST"])
@@ -181,7 +187,7 @@ def inject_user():
         "current_full_name": session.get("full_name", username),
         "app_version": APP_VERSION_FULL,
         "license_text": LICENSE_TEXT,
-        "dashboard_title": DASHBOARD_TITLE,
+        "dashboard_title": get_dashboard_title(),
         "user_role": role,
         "is_admin": role in ADMIN_ROLES,
     }
@@ -258,6 +264,7 @@ def index():
     color_i = 0
     role = session.get("role", "user")
     allowed = None if role in ADMIN_ROLES else allowed_categories(session.get("user", ""))
+    overrides = category_overrides()
     for group, keys in groups:
         items = []
         for k in keys:
@@ -266,17 +273,18 @@ def index():
                 continue
             if allowed is not None and k not in allowed:
                 continue
+            ov = overrides.get(k) or {}
             items.append({
                 "key": k,
-                "title": cfg["title"],
-                "color": FOLDER_COLORS[color_i % len(FOLDER_COLORS)],
+                "title": (ov.get("title") or cfg["title"]),
+                "color": (ov.get("color") or FOLDER_COLORS[color_i % len(FOLDER_COLORS)]),
             })
             color_i += 1
         if items:
             cards.append({"title": group, "cards": items})
     return render_template(
         "dashboard.html",
-        title=DASHBOARD_TITLE,
+        title=get_dashboard_title(),
         today=date.today().isoformat(),
         groups=cards,
         hidden_cards=(allowed is not None and not cards and "compare" not in allowed),
@@ -728,9 +736,11 @@ def build_cards(category, summary):
     if category == "pm_compliance":
         return [
             {"v": summary["total"], "l": "Jadwal PM (SCH)", "accent": True},
-            {"v": summary["closed"], "l": "Terlaksana", "accent": True},
-            {"v": summary["pct_closed"], "l": "% Kepatuhan", "suffix": "%"},
-            {"v": summary["open"], "l": "Belum Selesai", "accent": True},
+            {"v": summary["pct"], "l": "% Sesuai Jadwal", "suffix": "%"},
+            {"v": summary["tepat"], "l": "Tepat Jadwal"},
+            {"v": summary["awal"], "l": "Dikerjakan Lebih Awal"},
+            {"v": summary["telat"], "l": "Terlambat", "accent": True},
+            {"v": summary["belum"], "l": "Belum Dikerjakan", "accent": True},
         ]
     if category == "sparepart_fast_moving":
         return [
@@ -877,6 +887,17 @@ def api_wo_list():
     return jsonify({"rows": query_all(WO_LIST_SQL, params)})
 
 
+@app.route("/api/wo-approvals")
+@login_required
+def api_wo_approvals():
+    try:
+        wo_id = int(request.args.get("wo_id", ""))
+    except (TypeError, ValueError):
+        return jsonify({"error": "wo_id tidak valid"}), 400
+    rows = query_all(WO_APPROVALS_SQL, {"wo_id": wo_id})
+    return jsonify({"wo_id": wo_id, "rows": rows})
+
+
 @app.route("/api/export/<category>")
 @login_required
 def api_export(category):
@@ -900,12 +921,13 @@ def api_export(category):
 @login_required
 def api_charts():
     params = parse_filters()
+    overrides = category_overrides()
     out = {}
     for key, cfg in QUERIES.items():
         if cfg["type"] == "none":
             continue
         out[key] = {
-            "title": cfg["title"],
+            "title": (overrides.get(key) or {}).get("title") or cfg["title"],
             "type": cfg["type"],
             "data": query_all(cfg["sql"], params),
         }
@@ -919,11 +941,13 @@ def detail(category):
         return jsonify({"error": "kategori tidak ditemukan"}), 404
     if not can_view(category):
         abort(403)
+    ov = (category_overrides().get(category) or {})
+    chart_title = ov.get("title") or QUERIES[category]["title"]
     return render_template(
         "detail.html",
         category=category,
-        chart_title=QUERIES[category]["title"],
-        dashboard_title=DASHBOARD_TITLE,
+        chart_title=chart_title,
+        dashboard_title=get_dashboard_title(),
         today=date.today().isoformat(),
         can_compare=can_compare(),
     )
@@ -1087,13 +1111,13 @@ def build_recommendations(category, summary, table):
         if (s.get("top_cnt") or 0) > 10:
             add("tinggi", "Frekuensi WO tinggi pada aset teratas — direkomendasikan RCA dan penyesuaian strategi pemeliharaan (PM/failure-driven).")
     elif category == "pm_compliance":
-        pct = round((s.get("closed") or 0) / max(s.get("total") or 1, 1) * 100, 1)
-        add("info", "Dari {} WO terjadwal, {} berhasil ditutup ({}) — kepatuhan PM {}%.".format(
-            _f(s.get("total")), _f(s.get("closed")), "CL", pct))
+        pct = s.get("pct") or 0
+        add("info", "Dari {} WO terjadwal (berdasarkan jadwal pelaksanaan), {}% mulai dikerjakan pada atau sebelum jadwal ({} tepat, {} lebih awal); {} terlambat; {} belum dikerjakan.".format(
+            _f(s.get("total")), pct, _f(s.get("tepat")), _f(s.get("awal")), _f(s.get("telat")), _f(s.get("belum"))))
         if pct < 80:
-            add("tinggi", "Kepatuhan PM {}% di bawah target 80%. Susun rencana catch-up dan analisis hambatan pelaksanaan.".format(pct))
-        elif s.get("open"):
-            add("sedang", "Masih ada {} WO jadwal rutin yang belum ditutup (CO/RE/IP) — tindak lanjuti untuk menghindari penumpukan.".format(_f(s.get("open"))))
+            add("tinggi", "Kepatuhan terhadap jadwal {}% — di bawah target 80%. Susun rencana catch-up, pastikan WO yang terlambat/belum dikerjakan segera ditindaklanjuti.".format(pct))
+        elif (s.get("telat") or 0) > 0:
+            add("sedang", "Ada {} WO yang mulai dikerjakan setelah tanggal jadwal — analisis hambatan agar pelaksanaan berikutnya tepat waktu.".format(_f(s.get("telat"))))
     elif category == "sparepart_fast_moving":
         add("info", "{} item fast-moving terpakai {} unit dalam {} WO pada periode berjalan.".format(
             _f(s.get("tot_items")), _f(s.get("tot_qty")), _f(s.get("tot_wo"))))
@@ -1179,8 +1203,8 @@ def api_report(category):
 
     html = render_template(
         "report.html",
-        dashboard_title=DASHBOARD_TITLE,
-        category_title=QUERIES[category]["title"],
+        dashboard_title=get_dashboard_title(),
+        category_title=(category_overrides().get(category) or {}).get("title") or QUERIES[category]["title"],
         category=category,
         from_date=params["start_date"],
         to_date=params["end_date"],
@@ -1393,7 +1417,7 @@ def api_compare_report():
 
     html = render_template(
         "compare_report.html",
-        dashboard_title=DASHBOARD_TITLE,
+        dashboard_title=get_dashboard_title(),
         title="Perbandingan Dinamis",
         metrics=result["metrics"],
         rows_json=json.dumps(result["rows"], ensure_ascii=False),

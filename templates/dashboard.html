@@ -396,6 +396,7 @@
       <span class="user-name">{{ current_full_name }}</span>
       {% if is_admin %}<a class="btn-admin" href="{{ url_for('admin.dashboard') }}" title="Panel Administrasi">Administrasi</a>{% endif %}
       {% if can_compare %}<a class="btn-compare" href="/compare" title="Bandingkan kinerja antar periode &amp; site">Bandingkan</a>{% endif %}
+      <button class="btn-guide" id="btn-guide" type="button" title="Panduan membaca dashboard">Panduan</button>
       <a class="btn-logout" href="{{ url_for('logout') }}">Keluar</a>
     </div>
   </div>
@@ -418,10 +419,12 @@
     <span class="right" id="lbl-updated"></span>
   </div>
 
-  <details class="guide" id="guide-box">
-    <summary><span>Panduan Membaca Dashboard</span><span class="chev">&rsaquo;</span></summary>
-    <div class="guide-body" id="guide-body"></div>
-  </details>
+  <div class="guide-overlay" id="guide-overlay" aria-hidden="true">
+    <div class="guide-modal" role="dialog" aria-modal="true" aria-label="Panduan Membaca Dashboard">
+      <div class="guide-modal-head"><span>Panduan Membaca Dashboard</span><button class="guide-x" id="guide-close" type="button" aria-label="Tutup popup">&times;</button></div>
+      <div class="guide-body" id="guide-body"></div>
+    </div>
+  </div>
 
   <div class="grid">
     {% if can_compare %}
@@ -484,6 +487,20 @@
     const STORE_KEY = "biDashboardFilters";
 
     renderGuide(document.getElementById("guide-body"), "home");
+
+    (function () {
+      const btn = document.getElementById("btn-guide");
+      const overlay = document.getElementById("guide-overlay");
+      const close = document.getElementById("guide-close");
+      if (!btn || !overlay || !close) return;
+      if (!window.BI_GUIDES || !window.BI_GUIDES.home) { btn.style.display = "none"; return; }
+      const openGuide = () => { overlay.classList.add("open"); document.body.style.overflow = "hidden"; };
+      const closeGuide = () => { overlay.classList.remove("open"); document.body.style.overflow = ""; };
+      btn.addEventListener("click", openGuide);
+      close.addEventListener("click", closeGuide);
+      overlay.addEventListener("click", e => { if (e.target === overlay) closeGuide(); });
+      document.addEventListener("keydown", e => { if (e.key === "Escape") closeGuide(); });
+    })();
 
     function saveState() {
       sessionStorage.setItem(STORE_KEY, JSON.stringify({

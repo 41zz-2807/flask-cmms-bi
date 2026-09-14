@@ -106,3 +106,33 @@ def allowed_categories(username):
         admin=True,
     )
     return {r["category"] for r in rows}
+
+
+def dashboard_title():
+    """Judul dashboard kustom yang diset superadmin (bi_settings key
+    'dashboard_title'); None bila belum diset (pakai default env)."""
+    rows = query_all(
+        "SELECT value FROM petroflexx_om.bi_settings WHERE key = 'dashboard_title'",
+        admin=True,
+    )
+    if not rows:
+        return None
+    val = (rows[0].get("value") or "").strip()
+    return val or None
+
+
+def category_overrides():
+    """Override judul & warna folder per kategori dari
+    bi_dashboard_category -> {category: {'title': str, 'color': str}}."""
+    rows = query_all(
+        "SELECT category, COALESCE(title, '') AS title, COALESCE(color, '') AS color "
+        "FROM petroflexx_om.bi_dashboard_category",
+        admin=True,
+    )
+    out = {}
+    for r in rows or []:
+        key = r["category"]
+        if not key:
+            continue
+        out[key] = {"title": r.get("title") or "", "color": r.get("color") or ""}
+    return out

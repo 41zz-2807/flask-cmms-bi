@@ -31,6 +31,15 @@ CREATE TABLE IF NOT EXISTS bi_user_detail_access (
     PRIMARY KEY (bi_username, category)
 );
 
+-- Tampilan dashboard custom: judul & warna per kategori folder
+-- (overrides judul folder/warna; GRANT DML ke role app bisnis harus dilakukan manual)
+CREATE TABLE IF NOT EXISTS bi_dashboard_category (
+    category   text PRIMARY KEY,
+    title      text,
+    color      text,
+    updated_at timestamptz
+);
+
 CREATE INDEX IF NOT EXISTS idx_user_detail_access_username
     ON bi_user_detail_access (bi_username);
 

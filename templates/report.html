@@ -240,10 +240,11 @@
         avg_total_hari: "Rata-rata (hari)", med_total_hari: "Median (hari)",
         avg_approval_hari: "Approval (hari)", avg_exec_hari: "Eksekusi→Close (hari)",
         pct_dalam_7hari: "Selesai ≤7 hari (%)", p90_total_hari: "P90 (hari)",
+        jadwal: "Jadwal PM", tgl_mulai: "Mulai Dikerjakan", selisih: "Selisih (hari)", ket: "Kepatuhan",
       };
       function fmt(v, key) {
         if (v === null || v === undefined) return "-";
-        if (/tanggal|_date|last_date/.test(key)) {
+        if (/tanggal|_date|last_date|jadwal|tgl_mulai/.test(key)) {
           const d = new Date(v);
           return isNaN(d) ? v : d.toLocaleDateString("id-ID", { year: "numeric", month: "short", day: "2-digit" });
         }
