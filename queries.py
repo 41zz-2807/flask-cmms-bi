@@ -341,9 +341,9 @@ TABLE_SQL = {
         SELECT w.om_wo_id AS wo_id, w.value AS no_wo, w.doc_status AS status, w.type AS tipe,
                o.name AS site,
                w.created_date AS created_date, w.closed_date AS closed_date,
-               ROUND(EXTRACT(EPOCH FROM (w.closed_date - w.created_date)) / 3600.0, 1) AS durasi_total_jam,
-               ROUND(EXTRACT(EPOCH FROM (h.co_ts - h.submit_ts)) / 3600.0, 1) AS durasi_approval_jam,
-               ROUND(EXTRACT(EPOCH FROM (h.cl_ts - h.co_ts)) / 3600.0, 1) AS durasi_exec_jam,
+               ROUND((EXTRACT(EPOCH FROM (w.closed_date - w.created_date)) / 3600.0)::numeric, 1) AS durasi_total_jam,
+               ROUND((EXTRACT(EPOCH FROM (h.co_ts - h.submit_ts)) / 3600.0)::numeric, 1) AS durasi_approval_jam,
+               ROUND((EXTRACT(EPOCH FROM (h.cl_ts - h.co_ts)) / 3600.0)::numeric, 1) AS durasi_exec_jam,
                h.jml_approval
         FROM om_wo w
         LEFT JOIN hist h USING (om_wo_id)
