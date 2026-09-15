@@ -217,6 +217,42 @@
     @media (max-width: 700px) {
       .grid { grid-template-columns: 1fr; }
     }
+    @media (max-width: 700px) {
+      .header {
+        flex-wrap: wrap;
+        padding: 10px 14px;
+        gap: 8px 12px;
+      }
+      .header .logo-reset { width: 34px; height: 34px; }
+      .header h1 {
+        font-size: 15.5px;
+        white-space: normal;
+        min-width: 0;
+        line-height: 1.25;
+      }
+      .header .sub {
+        font-size: 11px;
+        white-space: normal;
+        color: #cfe3ec;
+      }
+      .header .user-box {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-left: 0;
+      }
+      .header .user-name {
+        font-size: 12px;
+        color: #d7e7f1;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .btn-logout, .btn-compare, .btn-admin, .btn-guide {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+    }
     .folder-card {
       background: #fff;
       border-radius: 10px;

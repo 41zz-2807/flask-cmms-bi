@@ -70,6 +70,50 @@
       text-decoration: none;
       white-space: nowrap;
     }
+    @media (max-width: 700px) {
+      .header {
+        flex-wrap: wrap;
+        padding: 10px 14px;
+        gap: 8px 12px;
+      }
+      .back { padding: 5px 10px; font-size: 12px; }
+      .header h1 {
+        font-size: 15.5px;
+        white-space: normal;
+        min-width: 0;
+        line-height: 1.25;
+      }
+      .header .sub {
+        font-size: 11px;
+        white-space: normal;
+        color: #cfe3ec;
+      }
+      .header .user-box {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-left: 0;
+      }
+      .header .user-name {
+        font-size: 12px;
+        color: #d7e7f1;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .btn-logout, .btn-compare, .btn-guide {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+      .cmp-fields { gap: 6px; }
+      .cmp-fields .fgroup { width: 100%; }
+      .cmp-fields .fgroup input[type="date"] {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: auto;
+      }
+      .cmp-fields .cmp-aset, .cmp-fields .cmp-teknisi { min-width: 0; width: 100%; }
+    }
     .btn-logout:hover { background: rgba(255,255,255,0.22); }
 
     .page { padding: 18px 24px 30px; position: relative; z-index: 1; }

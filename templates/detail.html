@@ -687,6 +687,42 @@
       transition: background .15s ease, color .15s ease;
     }
     .btn-guide:hover { background: #e3f4f7; color: #07514f; }
+    @media (max-width: 700px) {
+      .header {
+        flex-wrap: wrap;
+        padding: 10px 14px;
+        gap: 8px 12px;
+      }
+      .back { padding: 5px 10px; font-size: 12px; }
+      .header h1 {
+        font-size: 15.5px;
+        white-space: normal;
+        min-width: 0;
+        line-height: 1.25;
+      }
+      .header .sub {
+        font-size: 11px;
+        white-space: normal;
+        color: #cfe3ec;
+      }
+      .header .user-box {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-left: 0;
+      }
+      .header .user-name {
+        font-size: 12px;
+        color: #d7e7f1;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .btn-logout, .btn-compare, .btn-guide {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+    }
     .guide-overlay {
       position: fixed;
       inset: 0;
